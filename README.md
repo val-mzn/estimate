@@ -57,7 +57,7 @@ cd estimate
 
 2. Start the application:
 ```bash
-docker-compose up -d
+docker compose up -d
 ```
 
 3. Access the application:

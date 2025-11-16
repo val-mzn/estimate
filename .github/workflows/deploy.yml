@@ -102,7 +102,7 @@ jobs:
           eval $(ssh-agent -s)
           ssh-add ~/.ssh/deploy_key
 
-      - name: Create docker-compose override
+      - name: Create docker compose override
         run: |
           cat > docker-compose.demo.yml << EOF
           services:
@@ -111,12 +111,6 @@ jobs:
             frontend:
               image: ${{ env.FRONTEND_IMAGE }}:latest
           EOF
-
-      - name: Install rsync on server
-        run: |
-          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no -o BatchMode=yes -o PasswordAuthentication=no \
-            ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} \
-            "sudo apt-get update && sudo apt-get install -y rsync || true"
 
       - name: Prepare server directories
         run: |
@@ -147,15 +141,15 @@ jobs:
             echo "${{ secrets.DOCKER_REGISTRY_PASSWORD }}" | docker login -u "${{ vars.DOCKER_REGISTRY_USERNAME }}" --password-stdin ${{ env.REGISTRY }}
             
             # Pull latest images and deploy
-            docker-compose -f docker-compose.yml -f docker-compose.demo.yml pull
-            docker-compose -f docker-compose.yml -f docker-compose.demo.yml down || true
-            docker-compose -f docker-compose.yml -f docker-compose.demo.yml up -d
+            docker compose -f docker-compose.yml -f docker-compose.demo.yml pull
+            docker compose -f docker-compose.yml -f docker-compose.demo.yml down || true
+            docker compose -f docker-compose.yml -f docker-compose.demo.yml up -d
             
             # Clean up old images
             docker image prune -f
             
             # Show running containers
-            docker-compose -f docker-compose.yml -f docker-compose.demo.yml ps
+            docker compose -f docker-compose.yml -f docker-compose.demo.yml ps
           EOF
 
       - name: Health check
@@ -164,8 +158,8 @@ jobs:
           ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no -o BatchMode=yes -o PasswordAuthentication=no \
             ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << EOF
             cd ${{ secrets.SERVER_PATH }}
-            docker-compose -f docker-compose.yml -f docker-compose.demo.yml ps
-            docker-compose -f docker-compose.yml -f docker-compose.demo.yml logs --tail=50 backend
-            docker-compose -f docker-compose.yml -f docker-compose.demo.yml logs --tail=50 frontend
+            docker compose -f docker-compose.yml -f docker-compose.demo.yml ps
+            docker compose -f docker-compose.yml -f docker-compose.demo.yml logs --tail=50 backend
+            docker compose -f docker-compose.yml -f docker-compose.demo.yml logs --tail=50 frontend
           EOF
 
