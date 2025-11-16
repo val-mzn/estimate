@@ -12,6 +12,7 @@ import {
 import { rooms } from '../store/rooms.js';
 import { serializeTask } from '../utils/roomUtils.js';
 import { createTask } from '../utils/taskUtils.js';
+import logger from '../utils/logger.js';
 
 export function registerTaskHandlers(io: Server, socket: Socket) {
   socket.on('create-task', (payload: CreateTaskPayload) => {
@@ -44,11 +45,11 @@ export function registerTaskHandlers(io: Server, socket: Socket) {
       
       io.to(roomCode).emit('task-created', response);
       
-      console.log(`Fiche créée dans ${roomCode}: ${title}`);
+      logger.info(`Task created in room ${roomCode}: ${title}`, { roomCode, taskId: task.id, title });
     } catch (error) {
       const errorResponse: ErrorResponse = { message: 'Erreur lors de la création de la fiche' };
       socket.emit('error', errorResponse);
-      console.error('Erreur création fiche:', error);
+      logger.error('Error creating task', { error, roomCode: payload.roomCode, socketId: socket.id });
     }
   });
 
@@ -91,11 +92,11 @@ export function registerTaskHandlers(io: Server, socket: Socket) {
       
       io.to(roomCode).emit('task-deleted', response);
       
-      console.log(`Fiche supprimée dans ${roomCode}: ${taskId}`);
+      logger.info(`Task deleted in room ${roomCode}: ${taskId}`, { roomCode, taskId });
     } catch (error) {
       const errorResponse: ErrorResponse = { message: 'Erreur lors de la suppression de la fiche' };
       socket.emit('error', errorResponse);
-      console.error('Erreur suppression fiche:', error);
+      logger.error('Error deleting task', { error, roomCode: payload.roomCode, taskId: payload.taskId, socketId: socket.id });
     }
   });
 
@@ -134,7 +135,7 @@ export function registerTaskHandlers(io: Server, socket: Socket) {
         
         io.to(roomCode).emit('task-selected', response);
         
-        console.log(`Fiche désélectionnée dans ${roomCode}`);
+        logger.info(`Task deselected in room ${roomCode}`, { roomCode });
         return;
       }
       
@@ -158,11 +159,11 @@ export function registerTaskHandlers(io: Server, socket: Socket) {
       
       io.to(roomCode).emit('task-selected', response);
       
-      console.log(`Fiche sélectionnée dans ${roomCode}: ${taskId}`);
+      logger.info(`Task selected in room ${roomCode}: ${taskId}`, { roomCode, taskId });
     } catch (error) {
       const errorResponse: ErrorResponse = { message: 'Erreur lors de la sélection de la fiche' };
       socket.emit('error', errorResponse);
-      console.error('Erreur sélection fiche:', error);
+      logger.error('Error selecting task', { error, roomCode: payload.roomCode, taskId: payload.taskId, socketId: socket.id });
     }
   });
 }

@@ -12,6 +12,7 @@ import {
   ErrorResponse
 } from '../types.js';
 import { rooms } from '../store/rooms.js';
+import logger from '../utils/logger.js';
 
 export function registerEstimateHandlers(io: Server, socket: Socket) {
   socket.on('estimate-task', (payload: EstimateTaskPayload) => {
@@ -72,11 +73,17 @@ export function registerEstimateHandlers(io: Server, socket: Socket) {
       
       io.to(roomCode).emit('estimate-updated', response);
       
-      console.log(`Estimation mise à jour dans ${roomCode} par ${participant.name}: ${participant.currentEstimate || 'retirée'}`);
+      logger.info(`Estimate updated in room ${roomCode} by ${participant.name}: ${participant.currentEstimate || 'removed'}`, { 
+        roomCode, 
+        participantId: participant.id, 
+        participantName: participant.name, 
+        estimate: participant.currentEstimate,
+        taskId 
+      });
     } catch (error) {
       const errorResponse: ErrorResponse = { message: 'Erreur lors de l\'estimation' };
       socket.emit('error', errorResponse);
-      console.error('Erreur estimation:', error);
+      logger.error('Error updating estimate', { error, roomCode: payload.roomCode, taskId: payload.taskId, socketId: socket.id });
     }
   });
 
@@ -134,11 +141,11 @@ export function registerEstimateHandlers(io: Server, socket: Socket) {
       
       io.to(roomCode).emit('estimates-revealed', response);
       
-      console.log(`Estimations révélées dans ${roomCode}`);
+      logger.info(`Estimates revealed in room ${roomCode}`, { roomCode, average, participantCount: activeParticipants.length });
     } catch (error) {
       const errorResponse: ErrorResponse = { message: 'Erreur lors de la révélation des estimations' };
       socket.emit('error', errorResponse);
-      console.error('Erreur révélation:', error);
+      logger.error('Error revealing estimates', { error, roomCode: payload.roomCode, socketId: socket.id });
     }
   });
 
@@ -187,11 +194,11 @@ export function registerEstimateHandlers(io: Server, socket: Socket) {
       
       io.to(roomCode).emit('estimates-reset', response);
       
-      console.log(`Estimations réinitialisées dans ${roomCode}`);
+      logger.info(`Estimates reset in room ${roomCode}`, { roomCode, taskId: room.currentTaskId });
     } catch (error) {
       const errorResponse: ErrorResponse = { message: 'Erreur lors de la réinitialisation' };
       socket.emit('error', errorResponse);
-      console.error('Erreur réinitialisation:', error);
+      logger.error('Error resetting estimates', { error, roomCode: payload.roomCode, socketId: socket.id });
     }
   });
 
@@ -231,11 +238,15 @@ export function registerEstimateHandlers(io: Server, socket: Socket) {
       
       io.to(roomCode).emit('final-estimate-updated', response);
       
-      console.log(`Estimation finale mise à jour dans ${roomCode} pour la fiche ${taskId}: ${finalEstimate || 'supprimée'}`);
+      logger.info(`Final estimate updated in room ${roomCode} for task ${taskId}: ${finalEstimate || 'removed'}`, { 
+        roomCode, 
+        taskId, 
+        finalEstimate 
+      });
     } catch (error) {
       const errorResponse: ErrorResponse = { message: 'Erreur lors de la mise à jour de l\'estimation finale' };
       socket.emit('error', errorResponse);
-      console.error('Erreur mise à jour estimation finale:', error);
+      logger.error('Error updating final estimate', { error, roomCode: payload.roomCode, taskId: payload.taskId, socketId: socket.id });
     }
   });
 }

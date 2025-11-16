@@ -6,6 +6,7 @@ import { registerRoomHandlers } from './handlers/roomHandlers.js';
 import { registerTaskHandlers } from './handlers/taskHandlers.js';
 import { registerEstimateHandlers } from './handlers/estimateHandlers.js';
 import { registerDisconnectHandler } from './handlers/disconnectHandler.js';
+import logger from './utils/logger.js';
 
 const app = express();
 app.use(cors({
@@ -23,7 +24,7 @@ const io = new Server(httpServer, {
 });
 
 io.on('connection', (socket: Socket) => {
-  console.log(`Client connecté: ${socket.id}`);
+  logger.info(`Client connected: ${socket.id}`);
   
   registerRoomHandlers(io, socket);
   registerTaskHandlers(io, socket);
@@ -33,6 +34,6 @@ io.on('connection', (socket: Socket) => {
 
 const PORT = process.env.PORT || 3001;
 httpServer.listen(PORT, () => {
-  console.log(`Serveur Socket.IO démarré sur le port ${PORT}`);
+  logger.info(`Socket.IO server started on port ${PORT}`);
 });
 

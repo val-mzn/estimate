@@ -1,10 +1,11 @@
 import { Socket } from 'socket.io';
 import { ParticipantLeftResponse } from '../types.js';
 import { rooms } from '../store/rooms.js';
+import logger from '../utils/logger.js';
 
 export function registerDisconnectHandler(socket: Socket) {
   socket.on('disconnect', () => {
-    console.log(`Client déconnecté: ${socket.id}`);
+    logger.info(`Client disconnected: ${socket.id}`, { socketId: socket.id });
     
     for (const [roomCode, room] of rooms.entries()) {
       const participant = Array.from(room.participants.values())
@@ -19,9 +20,15 @@ export function registerDisconnectHandler(socket: Socket) {
         
         socket.to(roomCode).emit('participant-left', response);
         
+        logger.info(`Participant ${participant.name} left room ${roomCode}`, { 
+          roomCode, 
+          participantId: participant.id, 
+          participantName: participant.name 
+        });
+        
         if (room.participants.size === 0) {
           rooms.delete(roomCode);
-          console.log(`Room supprimée (vide): ${roomCode}`);
+          logger.info(`Room deleted (empty): ${roomCode}`, { roomCode });
         }
         
         break;

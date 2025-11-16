@@ -13,6 +13,7 @@ import {
 import { rooms } from '../store/rooms.js';
 import { generateRoomCode, createRoom, serializeTask } from '../utils/roomUtils.js';
 import { createParticipant } from '../utils/participantUtils.js';
+import logger from '../utils/logger.js';
 
 export function registerRoomHandlers(io: Server, socket: Socket) {
   socket.on('create-room', (payload: CreateRoomPayload) => {
@@ -44,11 +45,11 @@ export function registerRoomHandlers(io: Server, socket: Socket) {
       
       socket.emit('room-created', response);
       
-      console.log(`Room créée: ${roomCode} par ${userName}`);
+      logger.info(`Room created: ${roomCode} by ${userName}`, { roomCode, userName });
     } catch (error) {
       const errorResponse: ErrorResponse = { message: 'Erreur lors de la création de la room' };
       socket.emit('error', errorResponse);
-      console.error('Erreur création room:', error);
+      logger.error('Error creating room', { error, socketId: socket.id });
     }
   });
 
@@ -103,11 +104,11 @@ export function registerRoomHandlers(io: Server, socket: Socket) {
       
       socket.to(roomCode).emit('participant-joined', participantResponse);
       
-      console.log(`${userName} a rejoint la room ${roomCode}`);
+      logger.info(`User ${userName} joined room ${roomCode}`, { roomCode, userName, socketId: socket.id });
     } catch (error) {
       const errorResponse: ErrorResponse = { message: 'Erreur lors de la connexion à la room' };
       socket.emit('error', errorResponse);
-      console.error('Erreur join room:', error);
+      logger.error('Error joining room', { error, roomCode: payload.roomCode, socketId: socket.id });
     }
   });
 
@@ -165,14 +166,18 @@ export function registerRoomHandlers(io: Server, socket: Socket) {
       
       if (room.participants.size === 0) {
         rooms.delete(roomCode);
-        console.log(`Room supprimée (vide): ${roomCode}`);
+        logger.info(`Room deleted (empty): ${roomCode}`, { roomCode });
       }
       
-      console.log(`Participant ${participantToRemove.name} retiré de la room ${roomCode} par ${requester.name}`);
+      logger.info(`Participant ${participantToRemove.name} removed from room ${roomCode} by ${requester.name}`, { 
+        roomCode, 
+        removedParticipant: participantToRemove.name, 
+        requester: requester.name 
+      });
     } catch (error) {
       const errorResponse: ErrorResponse = { message: 'Erreur lors de la suppression du participant' };
       socket.emit('error', errorResponse);
-      console.error('Erreur remove participant:', error);
+      logger.error('Error removing participant', { error, roomCode: payload.roomCode, socketId: socket.id });
     }
   });
 }
