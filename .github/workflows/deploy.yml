@@ -119,10 +119,10 @@ jobs:
             "sudo mkdir -p ${{ secrets.SERVER_PATH }}/Backend/prisma/migrations && \
              sudo mkdir -p ${{ secrets.SERVER_PATH }}/Backend/prisma/data && \
              sudo mkdir -p ${{ secrets.SERVER_PATH }}/letsencrypt && \
-             sudo touch ${{ secrets.SERVER_PATH }}/letsencrypt/acme.json && \
-             sudo chmod 600 ${{ secrets.SERVER_PATH }}/letsencrypt/acme.json && \
              sudo chown -R ${{ secrets.SERVER_USER }}:${{ secrets.SERVER_USER }} ${{ secrets.SERVER_PATH }} && \
-             chmod -R 755 ${{ secrets.SERVER_PATH }}"
+             chmod -R 755 ${{ secrets.SERVER_PATH }} && \
+             touch ${{ secrets.SERVER_PATH }}/letsencrypt/acme.json && \
+             chmod 600 ${{ secrets.SERVER_PATH }}/letsencrypt/acme.json"
 
       - name: Copy files to server
         run: |
