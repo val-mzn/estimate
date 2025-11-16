@@ -10,8 +10,9 @@ env:
   DOCKER_BUILDKIT: 1
   COMPOSE_DOCKER_CLI_BUILD: 1
   REGISTRY: docker.io
-  BACKEND_IMAGE: ${{ secrets.DOCKER_REGISTRY_USERNAME }}/estimate-backend
-  FRONTEND_IMAGE: ${{ secrets.DOCKER_REGISTRY_USERNAME }}/estimate-frontend
+  DOCKER_USERNAME: ${{ vars.DOCKER_REGISTRY_USERNAME }}
+  BACKEND_IMAGE: ${{ vars.DOCKER_REGISTRY_USERNAME }}/estimate-backend
+  FRONTEND_IMAGE: ${{ vars.DOCKER_REGISTRY_USERNAME }}/estimate-frontend
 
 jobs:
   build-and-push:
@@ -31,8 +32,9 @@ jobs:
       - name: Login to Docker Registry
         uses: docker/login-action@v3
         with:
-          username: ${{ secrets.DOCKER_REGISTRY_USERNAME }}
+          username: ${{ vars.DOCKER_REGISTRY_USERNAME }}
           password: ${{ secrets.DOCKER_REGISTRY_PASSWORD }}
+          registry: ${{ env.REGISTRY }}
 
       - name: Extract backend metadata
         id: meta-backend
@@ -126,7 +128,7 @@ jobs:
             cd ${{ secrets.SERVER_PATH }}
             
             # Login to Docker Registry
-            echo "${{ secrets.DOCKER_REGISTRY_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_REGISTRY_USERNAME }}" --password-stdin ${{ env.REGISTRY }}
+            echo "${{ secrets.DOCKER_REGISTRY_PASSWORD }}" | docker login -u "${{ vars.DOCKER_REGISTRY_USERNAME }}" --password-stdin ${{ env.REGISTRY }}
             
             # Pull latest images and deploy
             docker-compose -f docker-compose.yml -f docker-compose.demo.yml pull
