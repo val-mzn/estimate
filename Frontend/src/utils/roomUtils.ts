@@ -1,4 +1,4 @@
-import type { Participant, Room } from '../types';
+import type { Participant } from '../types';
 import { isActiveParticipant } from './estimateUtils';
 
 export function getTotalParticipants(participants: Participant[]): number {

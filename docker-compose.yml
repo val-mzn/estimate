@@ -1,22 +1,40 @@
-version: '3.8'
-
 services:
+  traefik:
+    image: traefik:v3.5
+    container_name: estimate-traefik
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+    ports:
+      - "80:80"
+      - "8080:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    restart: unless-stopped
+
   backend:
     build:
       context: ./Backend
       dockerfile: Dockerfile
+      args:
+        - DATABASE_URL=file:./prisma/data/estimate.db
     container_name: estimate-backend
-    ports:
-      - "3001:3001"
     environment:
       - PORT=3001
-      - FRONTEND_URL=http://localhost:5173
+      - FRONTEND_URL=http://localhost
       - DATABASE_URL=file:./prisma/data/estimate.db
     volumes:
       - ./Backend/prisma/data:/app/prisma/data
       - ./Backend/prisma/migrations:/app/prisma/migrations
     working_dir: /app
     command: sh -c "npx prisma generate && npx prisma migrate deploy && npm start"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.backend.rule=PathPrefix(`/api`) || PathPrefix(`/socket.io`)"
+      - "traefik.http.routers.backend.entrypoints=web"
+      - "traefik.http.services.backend.loadbalancer.server.port=3001"
     restart: unless-stopped
 
   frontend:
@@ -24,13 +42,17 @@ services:
       context: ./Frontend
       dockerfile: Dockerfile
       args:
-        - VITE_API_URL=http://localhost:3001
+        - VITE_API_URL=http://localhost
     container_name: estimate-frontend
-    ports:
-      - "5173:80"
     environment:
-      - VITE_API_URL=http://localhost:3001
+      - VITE_API_URL=http://localhost
     depends_on:
       - backend
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.frontend.rule=PathPrefix(`/`)"
+      - "traefik.http.routers.frontend.entrypoints=web"
+      - "traefik.http.routers.frontend.priority=1"
+      - "traefik.http.services.frontend.loadbalancer.server.port=4173"
     restart: unless-stopped
 

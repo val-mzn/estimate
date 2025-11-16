@@ -2,11 +2,11 @@ import { useEffect, useState, useRef } from 'react';
 
 export function useVotingTimer(
   currentTaskId: string | null,
-  currentUserEstimate: string | null,
+  _currentUserEstimate: string | null,
   isRevealed: boolean
 ) {
   const [elapsedTime, setElapsedTime] = useState(0);
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const intervalRef = useRef<number | null>(null);
   const startTimeRef = useRef<number | null>(null);
   const hasStartedRef = useRef(false);
   const taskIdRef = useRef<string | null>(null);

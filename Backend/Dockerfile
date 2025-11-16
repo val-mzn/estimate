@@ -10,6 +10,9 @@ COPY src ./src
 COPY tsconfig.json ./
 COPY prisma.config.ts ./
 
+ARG DATABASE_URL=file:./prisma/data/estimate.db
+ENV DATABASE_URL=$DATABASE_URL
+
 RUN npx prisma generate
 RUN npm run build
 

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from './ui/button';
-import { Card, CardAction, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from './ui/card';
+import { Card, CardContent } from './ui/card';
 import { Switch } from './ui/switch';
 import { Check, Copy, LogOut, User, CreditCard } from 'lucide-react';
 import ChangeNameModal from './ChangeNameModal';

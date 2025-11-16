@@ -1,7 +1,6 @@
 import { useState, useCallback } from 'react';
 import type { Room, Task } from '../types';
 import { hasParticipantEstimated } from '../utils/roomUtils';
-import { calculateRecommendedEstimate, getEstimatesFromParticipants } from '../utils/estimateUtils';
 
 interface UseTaskSelectionParams {
   room: Room | null;

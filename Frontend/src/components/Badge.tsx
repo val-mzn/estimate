@@ -10,7 +10,7 @@ const customBadgeVariants = {
     voted: 'bg-green-100 text-green-700 border-green-200',
 } as const;
 
-export interface BadgeProps extends VariantProps<typeof badgeVariants> {
+export interface BadgeProps extends Omit<VariantProps<typeof badgeVariants>, 'variant'> {
     children: ReactNode;
     className?: string;
     variant?: 'manager' | 'participant' | 'spectator' | 'voted' | 'default' | 'secondary' | 'destructive' | 'outline';
