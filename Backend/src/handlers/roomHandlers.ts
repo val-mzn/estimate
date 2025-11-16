@@ -10,31 +10,34 @@ import {
   ParticipantLeftResponse,
   ErrorResponse
 } from '../types.js';
-import { rooms } from '../store/rooms.js';
-import { generateRoomCode, createRoom, serializeTask } from '../utils/roomUtils.js';
-import { createParticipant } from '../utils/participantUtils.js';
+import { generateRoomCode, serializeTask } from '../utils/roomUtils.js';
+import * as roomService from '../services/roomService.js';
+import * as participantService from '../services/participantService.js';
 import logger from '../utils/logger.js';
 
 export function registerRoomHandlers(io: Server, socket: Socket) {
-  socket.on('create-room', (payload: CreateRoomPayload) => {
+  socket.on('create-room', async (payload: CreateRoomPayload) => {
     try {
       const { roomName, userName, cardSet, role } = payload;
       const roomCode = generateRoomCode();
       const userId = socket.id;
       
-      const room = createRoom(roomCode, roomName, userId, userName, cardSet);
-      const participant = createParticipant(socket.id, userName, 'creator', userId);
-      participant.participationMode = role;
-      
-      room.participants.set(userId, participant);
-      rooms.set(roomCode, room);
+      await roomService.createRoom(roomCode, roomName, cardSet.split(',').map(c => c.trim()));
+      const participant = await participantService.createParticipant(
+        userId,
+        socket.id,
+        userName,
+        'creator',
+        roomCode,
+        role
+      );
       
       socket.join(roomCode);
       
       const response: RoomCreatedResponse = {
         roomCode,
         roomName,
-        cardSet: room.cardSet,
+        cardSet: cardSet.split(',').map(c => c.trim()),
         participant: {
           id: participant.id,
           name: participant.name,
@@ -53,10 +56,10 @@ export function registerRoomHandlers(io: Server, socket: Socket) {
     }
   });
 
-  socket.on('join-room', (payload: JoinRoomPayload) => {
+  socket.on('join-room', async (payload: JoinRoomPayload) => {
     try {
       const { roomCode, userName, role } = payload;
-      const room = rooms.get(roomCode);
+      const room = await roomService.getRoom(roomCode);
       
       if (!room) {
         const errorResponse: ErrorResponse = { message: 'Room introuvable' };
@@ -65,9 +68,14 @@ export function registerRoomHandlers(io: Server, socket: Socket) {
       }
       
       const userId = socket.id;
-      const participant = createParticipant(socket.id, userName, role, userId);
+      const participant = await participantService.createParticipant(
+        userId,
+        socket.id,
+        userName,
+        role,
+        roomCode
+      );
       
-      room.participants.set(userId, participant);
       socket.join(roomCode);
       
       const response: RoomJoinedResponse = {
@@ -112,10 +120,10 @@ export function registerRoomHandlers(io: Server, socket: Socket) {
     }
   });
 
-  socket.on('remove-participant', (payload: RemoveParticipantPayload) => {
+  socket.on('remove-participant', async (payload: RemoveParticipantPayload) => {
     try {
       const { roomCode, participantId } = payload;
-      const room = rooms.get(roomCode);
+      const room = await roomService.getRoom(roomCode);
       
       if (!room) {
         const errorResponse: ErrorResponse = { message: 'Room introuvable' };
@@ -146,11 +154,8 @@ export function registerRoomHandlers(io: Server, socket: Socket) {
         return;
       }
 
-      room.participants.delete(participantId);
-      
-      room.tasks.forEach(task => {
-        task.estimates.delete(participantId);
-      });
+      await participantService.deleteParticipantEstimates(participantId);
+      await participantService.deleteParticipant(participantId);
       
       const participantSocket = io.sockets.sockets.get(participantToRemove.socketId);
       if (participantSocket) {
@@ -164,8 +169,9 @@ export function registerRoomHandlers(io: Server, socket: Socket) {
       io.to(participantToRemove.socketId).emit('kicked', { message: 'Vous avez été retiré de la salle par le créateur' });
       io.to(roomCode).emit('participant-left', response);
       
-      if (room.participants.size === 0) {
-        rooms.delete(roomCode);
+      const updatedRoom = await roomService.getRoom(roomCode);
+      if (updatedRoom && updatedRoom.participants.size === 0) {
+        await roomService.deleteRoom(roomCode);
         logger.info(`Room deleted (empty): ${roomCode}`, { roomCode });
       }
       

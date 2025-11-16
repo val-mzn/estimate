@@ -9,16 +9,16 @@ import {
   TaskSelectedResponse,
   ErrorResponse
 } from '../types.js';
-import { rooms } from '../store/rooms.js';
+import * as roomService from '../services/roomService.js';
+import * as taskService from '../services/taskService.js';
 import { serializeTask } from '../utils/roomUtils.js';
-import { createTask } from '../utils/taskUtils.js';
 import logger from '../utils/logger.js';
 
 export function registerTaskHandlers(io: Server, socket: Socket) {
-  socket.on('create-task', (payload: CreateTaskPayload) => {
+  socket.on('create-task', async (payload: CreateTaskPayload) => {
     try {
       const { roomCode, title, description } = payload;
-      const room = rooms.get(roomCode);
+      const room = await roomService.getRoom(roomCode);
       
       if (!room) {
         const errorResponse: ErrorResponse = { message: 'Room introuvable' };
@@ -35,8 +35,8 @@ export function registerTaskHandlers(io: Server, socket: Socket) {
         return;
       }
       
-      const task = createTask(title, description);
-      room.tasks.set(task.id, task);
+      const taskId = Date.now().toString();
+      const task = await taskService.createTask(taskId, title, description || null, roomCode);
       
       const response: TaskCreatedResponse = {
         task: serializeTask(task),
@@ -53,10 +53,10 @@ export function registerTaskHandlers(io: Server, socket: Socket) {
     }
   });
 
-  socket.on('delete-task', (payload: DeleteTaskPayload) => {
+  socket.on('delete-task', async (payload: DeleteTaskPayload) => {
     try {
       const { roomCode, taskId } = payload;
-      const room = rooms.get(roomCode);
+      const room = await roomService.getRoom(roomCode);
       
       if (!room) {
         const errorResponse: ErrorResponse = { message: 'Room introuvable' };
@@ -73,21 +73,25 @@ export function registerTaskHandlers(io: Server, socket: Socket) {
         return;
       }
       
-      room.tasks.delete(taskId);
+      await taskService.deleteTask(taskId);
       
+      let newCurrentTaskId = room.currentTaskId;
       if (room.currentTaskId === taskId) {
-        const remainingTasks = Array.from(room.tasks.keys());
-        room.currentTaskId = remainingTasks.length > 0 ? remainingTasks[0] : null;
+        const remainingTasks = Array.from(room.tasks.keys()).filter(id => id !== taskId);
+        newCurrentTaskId = remainingTasks.length > 0 ? remainingTasks[0] : null;
         
-        room.participants.forEach(p => {
-          p.currentEstimate = null;
+        await roomService.updateRoom(roomCode, {
+          currentTaskId: newCurrentTaskId,
+          isRevealed: false
         });
-        room.isRevealed = false;
+        
+        const participantService = await import('../services/participantService.js');
+        await participantService.updateParticipantsCurrentEstimate(roomCode, null);
       }
       
       const response: TaskDeletedResponse = {
         taskId,
-        currentTaskId: room.currentTaskId
+        currentTaskId: newCurrentTaskId
       };
       
       io.to(roomCode).emit('task-deleted', response);
@@ -100,10 +104,10 @@ export function registerTaskHandlers(io: Server, socket: Socket) {
     }
   });
 
-  socket.on('select-task', (payload: SelectTaskPayload) => {
+  socket.on('select-task', async (payload: SelectTaskPayload) => {
     try {
       const { roomCode, taskId } = payload;
-      const room = rooms.get(roomCode);
+      const room = await roomService.getRoom(roomCode);
       
       if (!room) {
         const errorResponse: ErrorResponse = { message: 'Room introuvable' };
@@ -121,12 +125,13 @@ export function registerTaskHandlers(io: Server, socket: Socket) {
       }
       
       if (taskId === null) {
-        room.currentTaskId = null;
-        room.isRevealed = false;
-        
-        room.participants.forEach(p => {
-          p.currentEstimate = null;
+        await roomService.updateRoom(roomCode, {
+          currentTaskId: null,
+          isRevealed: false
         });
+        
+        const participantService = await import('../services/participantService.js');
+        await participantService.updateParticipantsCurrentEstimate(roomCode, null);
         
         const response: TaskSelectedResponse = {
           taskId: null,
@@ -145,12 +150,13 @@ export function registerTaskHandlers(io: Server, socket: Socket) {
         return;
       }
       
-      room.currentTaskId = taskId;
-      room.isRevealed = false;
-      
-      room.participants.forEach(p => {
-        p.currentEstimate = null;
+      await roomService.updateRoom(roomCode, {
+        currentTaskId: taskId,
+        isRevealed: false
       });
+      
+      const participantService = await import('../services/participantService.js');
+      await participantService.updateParticipantsCurrentEstimate(roomCode, null);
       
       const response: TaskSelectedResponse = {
         taskId,

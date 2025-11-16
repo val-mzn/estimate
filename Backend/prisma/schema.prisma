@@ -1,0 +1,64 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Room {
+  code          String        @id
+  name          String
+  cardSet       String
+  currentTaskId String?
+  isRevealed    Boolean       @default(false)
+  createdAt     DateTime      @default(now())
+  participants  Participant[]
+  tasks         Task[]
+
+  @@map("rooms")
+}
+
+model Participant {
+  id               String   @id
+  socketId         String
+  name             String
+  role             String
+  currentEstimate  String?
+  joinedAt         DateTime @default(now())
+  participationMode String?
+  roomCode         String
+  room             Room     @relation(fields: [roomCode], references: [code], onDelete: Cascade)
+  estimates        Estimate[]
+
+  @@index([roomCode])
+  @@index([socketId])
+  @@map("participants")
+}
+
+model Task {
+  id            String     @id
+  title         String
+  description   String?
+  createdAt     DateTime   @default(now())
+  finalEstimate String?
+  roomCode      String
+  room          Room       @relation(fields: [roomCode], references: [code], onDelete: Cascade)
+  estimates     Estimate[]
+
+  @@index([roomCode])
+  @@map("tasks")
+}
+
+model Estimate {
+  taskId        String
+  participantId String
+  estimate      String
+  task          Task        @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  participant   Participant @relation(fields: [participantId], references: [id], onDelete: Cascade)
+
+  @@id([taskId, participantId])
+  @@index([taskId])
+  @@map("estimates")
+}

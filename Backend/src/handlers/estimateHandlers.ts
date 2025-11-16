@@ -14,14 +14,17 @@ import {
   FinalEstimateUpdatedResponse,
   ErrorResponse
 } from '../types.js';
-import { rooms } from '../store/rooms.js';
+import * as roomService from '../services/roomService.js';
+import * as participantService from '../services/participantService.js';
+import * as estimateService from '../services/estimateService.js';
+import * as taskService from '../services/taskService.js';
 import logger from '../utils/logger.js';
 
 export function registerEstimateHandlers(io: Server, socket: Socket) {
-  socket.on('estimate-task', (payload: EstimateTaskPayload) => {
+  socket.on('estimate-task', async (payload: EstimateTaskPayload) => {
     try {
       const { roomCode, taskId, estimate } = payload;
-      const room = rooms.get(roomCode);
+      const room = await roomService.getRoom(roomCode);
       
       if (!room) {
         const errorResponse: ErrorResponse = { message: 'Room introuvable' };
@@ -53,34 +56,32 @@ export function registerEstimateHandlers(io: Server, socket: Socket) {
         return;
       }
       
+      let newEstimate: string | null = null;
       if (participant.currentEstimate === estimate) {
-        participant.currentEstimate = null;
+        newEstimate = null;
+        await estimateService.deleteEstimate(taskId, participant.id);
       } else {
-        participant.currentEstimate = estimate;
+        newEstimate = estimate;
+        await estimateService.upsertEstimate(taskId, participant.id, estimate);
       }
       
-      const task = room.tasks.get(taskId);
-      if (task) {
-        if (participant.currentEstimate === null) {
-          task.estimates.delete(participant.id);
-        } else {
-          task.estimates.set(participant.id, participant.currentEstimate);
-        }
-      }
+      await participantService.updateParticipant(participant.id, {
+        currentEstimate: newEstimate
+      });
       
       const response: EstimateUpdatedResponse = {
         participantId: participant.id,
-        estimate: participant.currentEstimate,
+        estimate: newEstimate,
         taskId
       };
       
       io.to(roomCode).emit('estimate-updated', response);
       
-      logger.info(`Estimate updated in room ${roomCode} by ${participant.name}: ${participant.currentEstimate || 'removed'}`, { 
+      logger.info(`Estimate updated in room ${roomCode} by ${participant.name}: ${newEstimate || 'removed'}`, { 
         roomCode, 
         participantId: participant.id, 
         participantName: participant.name, 
-        estimate: participant.currentEstimate,
+        estimate: newEstimate,
         taskId 
       });
     } catch (error) {
@@ -90,10 +91,10 @@ export function registerEstimateHandlers(io: Server, socket: Socket) {
     }
   });
 
-  socket.on('reveal-estimates', (payload: RevealEstimatesPayload) => {
+  socket.on('reveal-estimates', async (payload: RevealEstimatesPayload) => {
     try {
       const { roomCode } = payload;
-      const room = rooms.get(roomCode);
+      const room = await roomService.getRoom(roomCode);
       
       if (!room) {
         const errorResponse: ErrorResponse = { message: 'Room introuvable' };
@@ -110,7 +111,7 @@ export function registerEstimateHandlers(io: Server, socket: Socket) {
         return;
       }
       
-      room.isRevealed = true;
+      await roomService.updateRoom(roomCode, { isRevealed: true });
       
       const activeParticipants = Array.from(room.participants.values())
         .filter(p => {
@@ -152,10 +153,10 @@ export function registerEstimateHandlers(io: Server, socket: Socket) {
     }
   });
 
-  socket.on('hide-estimates', (payload: HideEstimatesPayload) => {
+  socket.on('hide-estimates', async (payload: HideEstimatesPayload) => {
     try {
       const { roomCode } = payload;
-      const room = rooms.get(roomCode);
+      const room = await roomService.getRoom(roomCode);
       
       if (!room) {
         const errorResponse: ErrorResponse = { message: 'Room introuvable' };
@@ -172,7 +173,7 @@ export function registerEstimateHandlers(io: Server, socket: Socket) {
         return;
       }
       
-      room.isRevealed = false;
+      await roomService.updateRoom(roomCode, { isRevealed: false });
       
       const response: EstimatesHiddenResponse = {
         participants: Array.from(room.participants.values()).map(p => ({
@@ -194,10 +195,10 @@ export function registerEstimateHandlers(io: Server, socket: Socket) {
     }
   });
 
-  socket.on('reset-estimates', (payload: ResetEstimatesPayload) => {
+  socket.on('reset-estimates', async (payload: ResetEstimatesPayload) => {
     try {
       const { roomCode } = payload;
-      const room = rooms.get(roomCode);
+      const room = await roomService.getRoom(roomCode);
       
       if (!room) {
         const errorResponse: ErrorResponse = { message: 'Room introuvable' };
@@ -214,17 +215,11 @@ export function registerEstimateHandlers(io: Server, socket: Socket) {
         return;
       }
       
-      room.isRevealed = false;
-      
-      room.participants.forEach(p => {
-        p.currentEstimate = null;
-      });
+      await roomService.updateRoom(roomCode, { isRevealed: false });
+      await participantService.updateParticipantsCurrentEstimate(roomCode, null);
       
       if (room.currentTaskId) {
-        const task = room.tasks.get(room.currentTaskId);
-        if (task) {
-          task.estimates.clear();
-        }
+        await estimateService.deleteEstimatesByTask(room.currentTaskId);
       }
       
       const response: EstimatesResetResponse = {
@@ -247,10 +242,10 @@ export function registerEstimateHandlers(io: Server, socket: Socket) {
     }
   });
 
-  socket.on('preview-final-estimate', (payload: PreviewFinalEstimatePayload) => {
+  socket.on('preview-final-estimate', async (payload: PreviewFinalEstimatePayload) => {
     try {
       const { roomCode, taskId, finalEstimate } = payload;
-      const room = rooms.get(roomCode);
+      const room = await roomService.getRoom(roomCode);
       
       if (!room) {
         const errorResponse: ErrorResponse = { message: 'Room introuvable' };
@@ -293,10 +288,10 @@ export function registerEstimateHandlers(io: Server, socket: Socket) {
     }
   });
 
-  socket.on('set-final-estimate', (payload: SetFinalEstimatePayload) => {
+  socket.on('set-final-estimate', async (payload: SetFinalEstimatePayload) => {
     try {
       const { roomCode, taskId, finalEstimate } = payload;
-      const room = rooms.get(roomCode);
+      const room = await roomService.getRoom(roomCode);
       
       if (!room) {
         const errorResponse: ErrorResponse = { message: 'Room introuvable' };
@@ -320,7 +315,7 @@ export function registerEstimateHandlers(io: Server, socket: Socket) {
         return;
       }
       
-      task.finalEstimate = finalEstimate;
+      await taskService.updateTask(taskId, { finalEstimate });
       
       const response: FinalEstimateUpdatedResponse = {
         taskId,
