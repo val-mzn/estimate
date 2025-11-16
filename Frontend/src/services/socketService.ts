@@ -3,6 +3,7 @@ import type {
   CreateRoomPayload,
   JoinRoomPayload,
   RemoveParticipantPayload,
+  ChangeParticipantRolePayload,
   CreateTaskPayload,
   DeleteTaskPayload,
   SelectTaskPayload,
@@ -16,6 +17,7 @@ import type {
   RoomJoinedResponse,
   ParticipantJoinedResponse,
   ParticipantLeftResponse,
+  ParticipantRoleChangedResponse,
   TaskCreatedResponse,
   TaskDeletedResponse,
   TaskSelectedResponse,
@@ -32,7 +34,7 @@ class SocketService {
   private readonly serverUrl: string;
 
   constructor() {
-    this.serverUrl = import.meta.env.VITE_SERVER_URL || 'http://localhost:3001';
+    this.serverUrl = import.meta.env.VITE_SERVER_URL || 'http://192.168.1.59:3001';
   }
 
   connect(): Socket {
@@ -91,6 +93,18 @@ class SocketService {
 
   removeParticipant(payload: RemoveParticipantPayload): void {
     this.socket?.emit('remove-participant', payload);
+  }
+
+  changeParticipantRole(payload: ChangeParticipantRolePayload): void {
+    this.socket?.emit('change-participant-role', payload);
+  }
+
+  onParticipantRoleChanged(callback: (response: ParticipantRoleChangedResponse) => void): void {
+    this.socket?.on('participant-role-changed', callback);
+  }
+
+  offParticipantRoleChanged(callback: (response: ParticipantRoleChangedResponse) => void): void {
+    this.socket?.off('participant-role-changed', callback);
   }
 
   onKicked(callback: (response: { message: string }) => void): void {

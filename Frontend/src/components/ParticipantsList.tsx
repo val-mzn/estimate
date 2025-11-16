@@ -7,10 +7,12 @@ import { Table, TableBody } from './ui/table';
 interface ParticipantsListProps {
     participants: Participant[];
     isCreator: boolean;
+    roomCode?: string;
     onRemoveParticipant?: (participantId: string) => void;
+    onChangeParticipantRole?: (participantId: string, role: 'participant' | 'spectator') => void;
 }
 
-export default function ParticipantsList({ participants, isCreator, onRemoveParticipant }: ParticipantsListProps) {
+export default function ParticipantsList({ participants, isCreator, roomCode, onRemoveParticipant, onChangeParticipantRole }: ParticipantsListProps) {
     const { t } = useTranslation();
     
     return (
@@ -31,7 +33,9 @@ export default function ParticipantsList({ participants, isCreator, onRemovePart
                                 key={participant.id}
                                 participant={participant}
                                 isCreator={isCreator}
+                                roomCode={roomCode}
                                 onRemove={onRemoveParticipant}
+                                onChangeRole={onChangeParticipantRole}
                             />
                         ))}
                     </TableBody>

@@ -7,7 +7,7 @@
     "back": "Retour",
     "loading": "Chargement...",
     "error": "Erreur",
-    "save": "Enregistrer",
+    "validate": "Valider",
     "delete": "Supprimer",
     "edit": "Modifier",
     "close": "Fermer",
@@ -100,7 +100,10 @@
   },
   "participants": {
     "title": "Participants",
-    "creator": "Créateur"
+    "creator": "Créateur",
+    "setAsParticipant": "Passer en participant",
+    "setAsSpectator": "Passer en spectateur",
+    "removeFromRoom": "Retirer de la salle"
   },
   "roomHeader": {
     "code": "Code: {{code}}",

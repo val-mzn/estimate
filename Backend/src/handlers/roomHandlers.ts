@@ -4,10 +4,12 @@ import {
   CreateRoomPayload,
   JoinRoomPayload,
   RemoveParticipantPayload,
+  ChangeParticipantRolePayload,
   RoomCreatedResponse,
   RoomJoinedResponse,
   ParticipantJoinedResponse,
   ParticipantLeftResponse,
+  ParticipantRoleChangedResponse,
   ErrorResponse
 } from '../types.js';
 import { generateRoomCode, serializeTask } from '../utils/roomUtils.js';
@@ -59,9 +61,9 @@ export function registerRoomHandlers(io: Server, socket: Socket) {
   socket.on('join-room', async (payload: JoinRoomPayload) => {
     try {
       const { roomCode, userName, role } = payload;
-      const room = await roomService.getRoom(roomCode);
+      const initialRoom = await roomService.getRoom(roomCode);
       
-      if (!room) {
+      if (!initialRoom) {
         const errorResponse: ErrorResponse = { message: 'Room introuvable' };
         socket.emit('error', errorResponse);
         return;
@@ -78,6 +80,14 @@ export function registerRoomHandlers(io: Server, socket: Socket) {
       
       socket.join(roomCode);
       
+      // Récupérer la room mise à jour avec le nouveau participant
+      const room = await roomService.getRoom(roomCode);
+      if (!room) {
+        const errorResponse: ErrorResponse = { message: 'Room introuvable' };
+        socket.emit('error', errorResponse);
+        return;
+      }
+      
       const response: RoomJoinedResponse = {
         roomCode: room.code,
         roomName: room.name,
@@ -85,7 +95,8 @@ export function registerRoomHandlers(io: Server, socket: Socket) {
         participant: {
           id: participant.id,
           name: participant.name,
-          role: participant.role
+          role: participant.role,
+          participationMode: participant.participationMode
         },
         participants: Array.from(room.participants.values()).map(p => ({
           id: p.id,
@@ -184,6 +195,67 @@ export function registerRoomHandlers(io: Server, socket: Socket) {
       const errorResponse: ErrorResponse = { message: 'Erreur lors de la suppression du participant' };
       socket.emit('error', errorResponse);
       logger.error('Error removing participant', { error, roomCode: payload.roomCode, socketId: socket.id });
+    }
+  });
+
+  socket.on('change-participant-role', async (payload: ChangeParticipantRolePayload) => {
+    try {
+      const { roomCode, participantId, role } = payload;
+      const room = await roomService.getRoom(roomCode);
+      
+      if (!room) {
+        const errorResponse: ErrorResponse = { message: 'Room introuvable' };
+        socket.emit('error', errorResponse);
+        return;
+      }
+
+      const requester = Array.from(room.participants.values())
+        .find(p => p.socketId === socket.id);
+      
+      if (!requester || requester.role !== 'creator') {
+        const errorResponse: ErrorResponse = { message: 'Seul le créateur peut changer le rôle des participants' };
+        socket.emit('error', errorResponse);
+        return;
+      }
+
+      const participantToChange = room.participants.get(participantId);
+      
+      if (!participantToChange) {
+        const errorResponse: ErrorResponse = { message: 'Participant introuvable' };
+        socket.emit('error', errorResponse);
+        return;
+      }
+
+      if (participantToChange.role === 'creator') {
+        const errorResponse: ErrorResponse = { message: 'Le rôle du créateur ne peut pas être modifié' };
+        socket.emit('error', errorResponse);
+        return;
+      }
+
+      const updatedParticipant = await participantService.updateParticipantRole(participantId, role);
+      
+      const response: ParticipantRoleChangedResponse = {
+        participant: {
+          id: updatedParticipant.id,
+          name: updatedParticipant.name,
+          role: updatedParticipant.role,
+          currentEstimate: updatedParticipant.currentEstimate,
+          participationMode: updatedParticipant.participationMode
+        }
+      };
+      
+      io.to(roomCode).emit('participant-role-changed', response);
+      
+      logger.info(`Participant ${updatedParticipant.name} role changed to ${role} in room ${roomCode} by ${requester.name}`, { 
+        roomCode, 
+        participant: updatedParticipant.name, 
+        newRole: role,
+        requester: requester.name 
+      });
+    } catch (error) {
+      const errorResponse: ErrorResponse = { message: 'Erreur lors du changement de rôle du participant' };
+      socket.emit('error', errorResponse);
+      logger.error('Error changing participant role', { error, roomCode: payload.roomCode, socketId: socket.id });
     }
   });
 }

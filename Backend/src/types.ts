@@ -48,6 +48,12 @@ export interface RemoveParticipantPayload {
   participantId: string;
 }
 
+export interface ChangeParticipantRolePayload {
+  roomCode: string;
+  participantId: string;
+  role: 'participant' | 'spectator';
+}
+
 export interface CreateTaskPayload {
   roomCode: string;
   title: string;
@@ -119,6 +125,7 @@ export interface RoomJoinedResponse {
     id: string;
     name: string;
     role: ParticipantRole;
+    participationMode?: 'participant' | 'spectator';
   };
   participants: Array<{
     id: string;
@@ -143,6 +150,16 @@ export interface ParticipantJoinedResponse {
 
 export interface ParticipantLeftResponse {
   participantId: string;
+}
+
+export interface ParticipantRoleChangedResponse {
+  participant: {
+    id: string;
+    name: string;
+    role: ParticipantRole;
+    currentEstimate: string | null;
+    participationMode?: 'participant' | 'spectator';
+  };
 }
 
 export interface TaskCreatedResponse {

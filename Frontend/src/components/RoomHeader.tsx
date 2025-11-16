@@ -36,7 +36,7 @@ export default function RoomHeader({
         <Card className="mb-6">
             <CardContent className="flex flex-row justify-between items-center">
                 <div>
-                    <p className="text-2xl font-bold">
+                    <p className="text-2xl font-bold capitalize">
                         {roomName}
                     </p>
                     <p className="text-sm text-muted-foreground">

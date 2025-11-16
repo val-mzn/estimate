@@ -5,20 +5,30 @@ import { Badge } from './ui/badge';
 import { Button } from './ui/button';
 import { TableCell, TableRow } from './ui/table';
 import { Avatar, AvatarFallback } from './ui/avatar';
-import { X } from 'lucide-react';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from './ui/dropdown-menu';
+import { MoreVertical, UserMinus, UserCheck, UserX } from 'lucide-react';
 
 interface ParticipantItemProps {
     participant: Participant;
     isCreator?: boolean;
+    roomCode?: string;
     onRemove?: (participantId: string) => void;
+    onChangeRole?: (participantId: string, role: 'participant' | 'spectator') => void;
 }
 
-export default function ParticipantItem({ participant, isCreator, onRemove }: ParticipantItemProps) {
+export default function ParticipantItem({ participant, isCreator, roomCode, onRemove, onChangeRole }: ParticipantItemProps) {
     const { t } = useTranslation();
     const badgeColor = getNameColor(participant.name);
     const participantIsCreator = participant.role === 'creator';
     const participationMode = participant.participationMode;
-    const canRemove = isCreator && !participantIsCreator && onRemove;
+    const canManage = isCreator && !participantIsCreator && (onRemove || onChangeRole);
+    const currentRole = participant.role;
 
     const getRoleBadge = () => {
         if (participantIsCreator) {
@@ -65,16 +75,50 @@ export default function ParticipantItem({ participant, isCreator, onRemove }: Pa
             </TableCell>
             {isCreator && (
                 <TableCell className="text-right">
-                    {canRemove && (
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
-                            onClick={() => onRemove(participant.id)}
-                            title={t('taskList.removeParticipant')}
-                        >
-                            <X className="w-4 h-4" />
-                        </Button>
+                    {canManage && (
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+                                >
+                                    <MoreVertical className="w-4 h-4" />
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                                {onChangeRole && (
+                                    <>
+                                        {currentRole !== 'participant' && (
+                                            <DropdownMenuItem
+                                                onClick={() => onChangeRole(participant.id, 'participant')}
+                                            >
+                                                <UserCheck className="w-4 h-4 mr-2" />
+                                                {t('participants.setAsParticipant')}
+                                            </DropdownMenuItem>
+                                        )}
+                                        {currentRole !== 'spectator' && (
+                                            <DropdownMenuItem
+                                                onClick={() => onChangeRole(participant.id, 'spectator')}
+                                            >
+                                                <UserX className="w-4 h-4 mr-2" />
+                                                {t('participants.setAsSpectator')}
+                                            </DropdownMenuItem>
+                                        )}
+                                    </>
+                                )}
+                                {onChangeRole && onRemove && <DropdownMenuSeparator />}
+                                {onRemove && (
+                                    <DropdownMenuItem
+                                        onClick={() => onRemove(participant.id)}
+                                        variant="destructive"
+                                    >
+                                        <UserMinus className="w-4 h-4 mr-2" />
+                                        {t('participants.removeFromRoom')}
+                                    </DropdownMenuItem>
+                                )}
+                            </DropdownMenuContent>
+                        </DropdownMenu>
                     )}
                 </TableCell>
             )}

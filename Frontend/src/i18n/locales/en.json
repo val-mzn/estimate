@@ -7,7 +7,7 @@
     "back": "Back",
     "loading": "Loading...",
     "error": "Error",
-    "save": "Save",
+    "validate": "Validate",
     "delete": "Delete",
     "edit": "Edit",
     "close": "Close",
@@ -100,7 +100,10 @@
   },
   "participants": {
     "title": "Participants",
-    "creator": "Creator"
+    "creator": "Creator",
+    "setAsParticipant": "Set as participant",
+    "setAsSpectator": "Set as spectator",
+    "removeFromRoom": "Remove from room"
   },
   "roomHeader": {
     "code": "Code: {{code}}",

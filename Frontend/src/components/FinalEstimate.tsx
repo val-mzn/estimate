@@ -136,7 +136,7 @@ export default function FinalEstimate({
                         size="lg"
                         className="w-full"
                     >
-                        {t('common.save')}
+                        {t('common.validate')}
                     </Button>
                 )}
             </div>

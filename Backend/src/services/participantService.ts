@@ -84,6 +84,26 @@ export async function updateParticipant(
   });
 }
 
+export async function updateParticipantRole(
+  id: string,
+  role: 'participant' | 'spectator'
+): Promise<Participant> {
+  const participant = await prisma.participant.update({
+    where: { id },
+    data: { role }
+  });
+
+  return {
+    id: participant.id,
+    socketId: participant.socketId,
+    name: participant.name,
+    role: participant.role as ParticipantRole,
+    currentEstimate: participant.currentEstimate,
+    joinedAt: participant.joinedAt,
+    participationMode: participant.participationMode as 'participant' | 'spectator' | undefined
+  };
+}
+
 export async function updateParticipantsCurrentEstimate(
   roomCode: string,
   currentEstimate: string | null

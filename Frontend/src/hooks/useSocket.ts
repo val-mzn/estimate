@@ -6,6 +6,7 @@ import type {
   RoomJoinedResponse,
   ParticipantJoinedResponse,
   ParticipantLeftResponse,
+  ParticipantRoleChangedResponse,
   TaskCreatedResponse,
   TaskDeletedResponse,
   TaskSelectedResponse,
@@ -43,6 +44,7 @@ export function useSocket(callbacks: UseSocketCallbacks = {}) {
     addParticipant,
     removeParticipant,
     updateParticipantEstimate,
+    updateParticipantRole,
     addTask,
     removeTask,
     setCurrentTask,
@@ -71,6 +73,10 @@ export function useSocket(callbacks: UseSocketCallbacks = {}) {
     const handleParticipantLeft = (response: ParticipantLeftResponse) => {
       removeParticipant(response.participantId);
       callbacksRef.current.onParticipantLeft?.(response);
+    };
+
+    const handleParticipantRoleChanged = (response: ParticipantRoleChangedResponse) => {
+      updateParticipantRole(response.participant.id, response.participant.role as 'participant' | 'spectator');
     };
 
     const handleTaskCreated = (response: TaskCreatedResponse) => {
@@ -150,6 +156,7 @@ export function useSocket(callbacks: UseSocketCallbacks = {}) {
 
     socketService.onParticipantJoined(handleParticipantJoined);
     socketService.onParticipantLeft(handleParticipantLeft);
+    socketService.onParticipantRoleChanged(handleParticipantRoleChanged);
     socketService.onTaskCreated(handleTaskCreated);
     socketService.onTaskDeleted(handleTaskDeleted);
     socketService.onTaskSelected(handleTaskSelected);
@@ -166,6 +173,7 @@ export function useSocket(callbacks: UseSocketCallbacks = {}) {
     return () => {
       socketService.offParticipantJoined(handleParticipantJoined);
       socketService.offParticipantLeft(handleParticipantLeft);
+      socketService.offParticipantRoleChanged(handleParticipantRoleChanged);
       socketService.offTaskCreated(handleTaskCreated);
       socketService.offTaskDeleted(handleTaskDeleted);
       socketService.offTaskSelected(handleTaskSelected);
@@ -186,6 +194,7 @@ export function useSocket(callbacks: UseSocketCallbacks = {}) {
     addParticipant,
     removeParticipant,
     updateParticipantEstimate,
+    updateParticipantRole,
     addTask,
     removeTask,
     setCurrentTask,

@@ -20,6 +20,7 @@ interface RoomState {
   addParticipant: (participant: Participant) => void;
   removeParticipant: (participantId: string) => void;
   updateParticipantEstimate: (participantId: string, estimate: string | null) => void;
+  updateParticipantRole: (participantId: string, role: 'participant' | 'spectator') => void;
   
   // Task actions
   addTask: (task: Task) => void;
@@ -79,6 +80,27 @@ export const useRoomStore = create<RoomState>((set) => ({
       );
       return {
         room: { ...state.room, participants },
+      };
+    }),
+  
+  updateParticipantRole: (participantId, role) =>
+    set((state) => {
+      if (!state.room) return state;
+      // Si le rôle devient spectateur, réinitialiser l'estimation
+      const participants = state.room.participants.map((p) =>
+        p.id === participantId 
+          ? { ...p, role, currentEstimate: role === 'spectator' ? null : p.currentEstimate }
+          : p
+      );
+      
+      // Si c'est l'utilisateur actuel dont le rôle change, mettre à jour currentUser aussi
+      const updatedCurrentUser = state.currentUser?.id === participantId
+        ? { ...state.currentUser, role, currentEstimate: role === 'spectator' ? null : state.currentUser.currentEstimate }
+        : state.currentUser;
+      
+      return {
+        room: { ...state.room, participants },
+        currentUser: updatedCurrentUser,
       };
     }),
   

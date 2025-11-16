@@ -8,6 +8,7 @@ import { useRoomNavigation } from '../hooks/useRoomNavigation';
 import { useEstimateCalculations } from '../hooks/useEstimateCalculations';
 import { useTaskHandlers } from '../hooks/useTaskHandlers';
 import { useTaskSelection } from '../hooks/useTaskSelection';
+import { useAutoFinalEstimate } from '../hooks/useAutoFinalEstimate';
 import { socketService } from '../services/socketService';
 import type { Task } from '../types';
 import AddTaskModal from '../components/AddTaskModal';
@@ -112,6 +113,16 @@ export default function RoomPage() {
         setFinalEstimate,
     });
 
+    useAutoFinalEstimate({
+        isCreator,
+        room,
+        currentTask,
+        roomCode,
+        medianEstimate,
+        estimatesForCurrentTask,
+        setFinalEstimate,
+    });
+
     const handleLeave = () => {
         socketService.disconnect();
         reset();
@@ -194,8 +205,12 @@ export default function RoomPage() {
                         <ParticipantsList
                             participants={room.participants}
                             isCreator={isCreator}
+                            roomCode={roomCode}
                             onRemoveParticipant={roomCode ? (participantId) => {
                                 socketService.removeParticipant({ roomCode, participantId });
+                            } : undefined}
+                            onChangeParticipantRole={roomCode ? (participantId, role) => {
+                                socketService.changeParticipantRole({ roomCode, participantId, role });
                             } : undefined}
                         />
                     </div>
