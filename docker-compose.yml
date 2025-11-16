@@ -8,11 +8,19 @@ services:
       - "--providers.docker.exposedbydefault=false"
       - "--providers.docker.endpoint=unix:///var/run/docker.sock"
       - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
+      - "--certificatesresolvers.letsencrypt.acme.tlschallenge=true"
+      - "--certificatesresolvers.letsencrypt.acme.email=vmanzon@proton.me"
+      - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
     ports:
       - "80:80"
+      - "443:443"
       - "8080:8080"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./letsencrypt:/letsencrypt
     restart: unless-stopped
 
   backend:
@@ -24,7 +32,7 @@ services:
     container_name: estimate-backend
     environment:
       - PORT=3001
-      - FRONTEND_URL=http://localhost
+      - FRONTEND_URL=https://estimate.valmzn.ch
       - DATABASE_URL=file:./prisma/data/estimate.db
     volumes:
       - ./Backend/prisma/data:/app/prisma/data
@@ -34,8 +42,13 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.backend.rule=PathPrefix(`/api`) || PathPrefix(`/socket.io`)"
-      - "traefik.http.routers.backend.entrypoints=web"
+      - "traefik.http.routers.backend.entrypoints=websecure"
+      - "traefik.http.routers.backend.tls=true"
+      - "traefik.http.routers.backend.tls.certresolver=letsencrypt"
       - "traefik.http.services.backend.loadbalancer.server.port=3001"
+      - "traefik.http.middlewares.websocket-headers.headers.customrequestheaders.X-Forwarded-Proto=https"
+      - "traefik.http.middlewares.websocket-headers.headers.customrequestheaders.X-Forwarded-For={remote-addr}"
+      - "traefik.http.routers.backend.middlewares=websocket-headers"
     restart: unless-stopped
 
   frontend:
@@ -43,16 +56,18 @@ services:
       context: ./Frontend
       dockerfile: Dockerfile
       args:
-        - VITE_API_URL=http://localhost
+        - VITE_API_URL=https://estimate.valmzn.ch
     container_name: estimate-frontend
     environment:
-      - VITE_API_URL=http://localhost
+      - VITE_API_URL=https://estimate.valmzn.ch
     depends_on:
       - backend
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.frontend.rule=PathPrefix(`/`)"
-      - "traefik.http.routers.frontend.entrypoints=web"
+      - "traefik.http.routers.frontend.entrypoints=websecure"
+      - "traefik.http.routers.frontend.tls=true"
+      - "traefik.http.routers.frontend.tls.certresolver=letsencrypt"
       - "traefik.http.routers.frontend.priority=1"
       - "traefik.http.services.frontend.loadbalancer.server.port=4173"
     restart: unless-stopped
