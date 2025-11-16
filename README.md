@@ -22,6 +22,12 @@ A real-time Planning Poker application for agile teams to estimate task effort c
 - **Vote Progress Tracking**: Visual indicators showing voting status
 - **Task Statistics**: View estimation metrics and progress
 
+## Demo
+
+A demo instance is available at: [https://estimate.valmzn.ch/create-room](https://estimate.valmzn.ch/create-room)
+
+**⚠️ Important Notice**: This is a quality/testing server and not a production environment. The service may be unstable or temporarily unavailable as it is primarily used for testing purposes. For production use, please deploy your own instance following the instructions in the [Quick Start](#quick-start) section.
+
 ## Tech Stack
 
 ### Backend
