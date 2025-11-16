@@ -122,8 +122,9 @@ jobs:
         run: |
           ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no -o BatchMode=yes -o PasswordAuthentication=no \
             ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} \
-            "mkdir -p ${{ secrets.SERVER_PATH }}/Backend/prisma/migrations && \
-             mkdir -p ${{ secrets.SERVER_PATH }}/Backend/prisma/data && \
+            "sudo mkdir -p ${{ secrets.SERVER_PATH }}/Backend/prisma/migrations && \
+             sudo mkdir -p ${{ secrets.SERVER_PATH }}/Backend/prisma/data && \
+             sudo chown -R ${{ secrets.SERVER_USER }}:${{ secrets.SERVER_USER }} ${{ secrets.SERVER_PATH }} && \
              chmod -R 755 ${{ secrets.SERVER_PATH }}"
 
       - name: Copy files to server
@@ -134,11 +135,6 @@ jobs:
             docker-compose.demo.yml \
             Backend/prisma/migrations/ \
             ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:${{ secrets.SERVER_PATH }}/
-          
-          # Ensure data directory exists (but don't sync .db files)
-          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no -o BatchMode=yes -o PasswordAuthentication=no \
-            ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} \
-            "mkdir -p ${{ secrets.SERVER_PATH }}/Backend/prisma/data"
 
       - name: Deploy on server
         run: |
