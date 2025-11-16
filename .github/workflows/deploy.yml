@@ -105,18 +105,8 @@ jobs:
           services:
             backend:
               image: ${{ env.BACKEND_IMAGE }}:latest
-              build:
-                context: ./Backend
-                dockerfile: Dockerfile
-                args:
-                  DATABASE_URL=file:./prisma/data/estimate.db
             frontend:
               image: ${{ env.FRONTEND_IMAGE }}:latest
-              build:
-                context: ./Frontend
-                dockerfile: Dockerfile
-                args:
-                  VITE_API_URL=${{ secrets.API_URL }}
           EOF
 
       - name: Copy files to server
