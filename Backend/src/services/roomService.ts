@@ -54,6 +54,7 @@ export async function getRoom(roomCode: string): Promise<Room | null> {
     tasks: tasksMap,
     currentTaskId: room.currentTaskId,
     isRevealed: room.isRevealed,
+    anonymousVotes: room.anonymousVotes,
     createdAt: room.createdAt
   };
 }
@@ -61,14 +62,16 @@ export async function getRoom(roomCode: string): Promise<Room | null> {
 export async function createRoom(
   roomCode: string,
   roomName: string,
-  cardSet: string[]
+  cardSet: string[],
+  anonymousVotes: boolean = false
 ): Promise<void> {
   await prisma.room.create({
     data: {
       code: roomCode,
       name: roomName,
       cardSet: cardSet.join(','),
-      isRevealed: false
+      isRevealed: false,
+      anonymousVotes
     }
   });
 }
@@ -78,13 +81,17 @@ export async function updateRoom(
   data: {
     currentTaskId?: string | null;
     isRevealed?: boolean;
+    cardSet?: string[];
+    anonymousVotes?: boolean;
   }
 ): Promise<void> {
   await prisma.room.update({
     where: { code: roomCode },
     data: {
       currentTaskId: data.currentTaskId !== undefined ? data.currentTaskId : undefined,
-      isRevealed: data.isRevealed !== undefined ? data.isRevealed : undefined
+      isRevealed: data.isRevealed !== undefined ? data.isRevealed : undefined,
+      cardSet: data.cardSet !== undefined ? data.cardSet.join(',') : undefined,
+      anonymousVotes: data.anonymousVotes !== undefined ? data.anonymousVotes : undefined
     }
   });
 }

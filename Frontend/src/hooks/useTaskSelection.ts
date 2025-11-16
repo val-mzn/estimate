@@ -6,7 +6,7 @@ import { calculateRecommendedEstimate, getEstimatesFromParticipants } from '../u
 interface UseTaskSelectionParams {
   room: Room | null;
   roomCode: string | undefined;
-  isCreator: boolean;
+  isManager: boolean;
   selectTask: (payload: { roomCode: string; taskId: string | null }) => void;
   setFinalEstimate: (payload: { roomCode: string; taskId: string; finalEstimate: number | '?' | null }) => void;
 }
@@ -14,7 +14,7 @@ interface UseTaskSelectionParams {
 export function useTaskSelection({
   room,
   roomCode,
-  isCreator,
+  isManager,
   selectTask,
   setFinalEstimate,
 }: UseTaskSelectionParams) {
@@ -66,8 +66,8 @@ export function useTaskSelection({
     const currentTask = room.currentTaskId ? room.tasks.find((t) => t.id === room.currentTaskId) : null;
     const currentTaskHasFinalEstimate = currentTask ? (currentTask as any).finalEstimate !== null : false;
 
-    // Les warnings ne s'appliquent qu'au créateur
-    if (isCreator) {
+    // Les warnings ne s'appliquent qu'au manager
+    if (isManager) {
       // Afficher le warning uniquement si on veut réestimer une fiche déjà estimée
       if (isTaskAlreadyEstimatedValue) {
         setWarningModal({
@@ -109,7 +109,7 @@ export function useTaskSelection({
 
     // Pour les participants, permettre la sélection sans warning
     performTaskSelection(taskId);
-  }, [room, roomCode, isCreator, setFinalEstimate, performTaskSelection]);
+  }, [room, roomCode, isManager, setFinalEstimate, performTaskSelection]);
 
   const closeWarningModal = useCallback(() => {
     setWarningModal((prev) => ({ ...prev, isOpen: false }));

@@ -13,9 +13,10 @@ interface EstimateResultsChartProps {
     median?: number;
     cardSet: string[];
     participants: Participant[];
+    anonymousVotes?: boolean;
 }
 
-export default function EstimateResultsChart({ cardSet, participants }: EstimateResultsChartProps) {
+export default function EstimateResultsChart({ cardSet, participants, anonymousVotes = false }: EstimateResultsChartProps) {
     const { t } = useTranslation();
     const chartRef = useRef<HTMLDivElement>(null);
     const [barPositions, setBarPositions] = useState<{ x: number; width: number }[]>([]);
@@ -173,41 +174,43 @@ export default function EstimateResultsChart({ cardSet, participants }: Estimate
                 </ChartContainer>
             </div>
 
-            <div className="absolute bottom-10 w-full h-full">
-                {chartData.map((entry, index) => {
-                    const voters = participantsByVote[entry.value] || [];
-                    const position = barPositions[index];
+            {!anonymousVotes && (
+                <div className="absolute bottom-10 w-full h-full">
+                    {chartData.map((entry, index) => {
+                        const voters = participantsByVote[entry.value] || [];
+                        const position = barPositions[index];
 
-                    if (!position || voters.length === 0) return null;
+                        if (!position || voters.length === 0) return null;
 
-                    return (
-                        <div
-                            key={entry.value}
-                            className="absolute flex flex-col gap-1 items-center bottom-0"
-                            style={{
-                                left: `${position.x}px`,
-                                transform: 'translateX(-50%)',
-                                maxWidth: '120px',
-                            }}
-                        >
-                            {voters.map(participant => {
-                                const badgeColor = getNameColor(participant.name);
-                                return (
+                        return (
+                            <div
+                                key={entry.value}
+                                className="absolute flex flex-col gap-1 items-center bottom-0"
+                                style={{
+                                    left: `${position.x}px`,
+                                    transform: 'translateX(-50%)',
+                                    maxWidth: '120px',
+                                }}
+                            >
+                                {voters.map(participant => {
+                                    const badgeColor = getNameColor(participant.name);
+                                    return (
 
-                                    <Avatar className="h-8 w-8 flex-shrink-0">
-                                        <AvatarFallback
-                                            className="text-[11px] font-semibold"
-                                            style={{ backgroundColor: badgeColor }}
-                                        >
-                                            {participant.name.charAt(0).toUpperCase()}
-                                        </AvatarFallback>
-                                    </Avatar>
-                                );
-                            })}
-                        </div>
-                    );
-                })}
-            </div>
+                                        <Avatar className="h-8 w-8 flex-shrink-0">
+                                            <AvatarFallback
+                                                className="text-[11px] font-semibold"
+                                                style={{ backgroundColor: badgeColor }}
+                                            >
+                                                {participant.name.charAt(0).toUpperCase()}
+                                            </AvatarFallback>
+                                        </Avatar>
+                                    );
+                                })}
+                            </div>
+                        );
+                    })}
+                </div>
+            )}
         </div>
     );
 }

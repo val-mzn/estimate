@@ -4,7 +4,7 @@ import type { Room } from '../types';
 interface UseTaskHandlersParams {
   room: Room | null;
   roomCode: string | undefined;
-  isCreator: boolean;
+  isManager: boolean;
   isParticipant: boolean;
   createTask: (payload: { roomCode: string; title: string; description?: string }) => void;
   deleteTask: (payload: { roomCode: string; taskId: string }) => void;
@@ -20,7 +20,7 @@ interface UseTaskHandlersParams {
 export function useTaskHandlers({
   room,
   roomCode,
-  isCreator,
+  isManager,
   isParticipant,
   createTask,
   deleteTask,
@@ -60,19 +60,19 @@ export function useTaskHandlers({
   }, [room?.currentTaskId, roomCode, setFinalEstimate]);
 
   const handleReveal = useCallback(() => {
-    if (!isCreator || !roomCode) return;
+    if (!isManager || !roomCode) return;
     revealEstimates({ roomCode });
-  }, [isCreator, roomCode, revealEstimates]);
+  }, [isManager, roomCode, revealEstimates]);
 
   const handleHide = useCallback(() => {
-    if (!isCreator || !roomCode) return;
+    if (!isManager || !roomCode) return;
     hideEstimates({ roomCode });
-  }, [isCreator, roomCode, hideEstimates]);
+  }, [isManager, roomCode, hideEstimates]);
 
   const handleReset = useCallback(() => {
-    if (!isCreator || !roomCode) return;
+    if (!isManager || !roomCode) return;
     resetEstimates({ roomCode });
-  }, [isCreator, roomCode, resetEstimates]);
+  }, [isManager, roomCode, resetEstimates]);
 
   const handleAddTask = useCallback((taskData: { title: string }) => {
     if (!roomCode) return;

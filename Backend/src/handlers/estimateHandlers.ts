@@ -42,7 +42,7 @@ export function registerEstimateHandlers(io: Server, socket: Socket) {
       }
       
       const canEstimate = participant.role === 'participant' || 
-                          (participant.role === 'creator' && participant.participationMode === 'participant');
+                          (participant.role === 'manager' && participant.participationMode === 'participant');
       
       if (!canEstimate) {
         const errorResponse: ErrorResponse = { message: 'Seuls les participants peuvent estimer' };
@@ -105,8 +105,8 @@ export function registerEstimateHandlers(io: Server, socket: Socket) {
       const participant = Array.from(room.participants.values())
         .find(p => p.socketId === socket.id);
       
-      if (!participant || participant.role !== 'creator') {
-        const errorResponse: ErrorResponse = { message: 'Seul le créateur peut révéler les estimations' };
+      if (!participant || participant.role !== 'manager') {
+        const errorResponse: ErrorResponse = { message: 'Seul le manager peut révéler les estimations' };
         socket.emit('error', errorResponse);
         return;
       }
@@ -116,8 +116,8 @@ export function registerEstimateHandlers(io: Server, socket: Socket) {
       const activeParticipants = Array.from(room.participants.values())
         .filter(p => {
           const isParticipant = p.role === 'participant';
-          const isCreatorParticipating = p.role === 'creator' && p.participationMode === 'participant';
-          return (isParticipant || isCreatorParticipating);
+          const isManagerParticipating = p.role === 'manager' && p.participationMode === 'participant';
+          return (isParticipant || isManagerParticipating);
         });
       
       const allVotedQuestionMark = activeParticipants.length > 0 && 
@@ -167,8 +167,8 @@ export function registerEstimateHandlers(io: Server, socket: Socket) {
       const participant = Array.from(room.participants.values())
         .find(p => p.socketId === socket.id);
       
-      if (!participant || participant.role !== 'creator') {
-        const errorResponse: ErrorResponse = { message: 'Seul le créateur peut masquer les estimations' };
+      if (!participant || participant.role !== 'manager') {
+        const errorResponse: ErrorResponse = { message: 'Seul le manager peut masquer les estimations' };
         socket.emit('error', errorResponse);
         return;
       }
@@ -209,8 +209,8 @@ export function registerEstimateHandlers(io: Server, socket: Socket) {
       const participant = Array.from(room.participants.values())
         .find(p => p.socketId === socket.id);
       
-      if (!participant || participant.role !== 'creator') {
-        const errorResponse: ErrorResponse = { message: 'Seul le créateur peut réinitialiser les estimations' };
+      if (!participant || participant.role !== 'manager') {
+        const errorResponse: ErrorResponse = { message: 'Seul le manager peut réinitialiser les estimations' };
         socket.emit('error', errorResponse);
         return;
       }
@@ -256,8 +256,8 @@ export function registerEstimateHandlers(io: Server, socket: Socket) {
       const participant = Array.from(room.participants.values())
         .find(p => p.socketId === socket.id);
       
-      if (!participant || participant.role !== 'creator') {
-        const errorResponse: ErrorResponse = { message: 'Seul le créateur peut prévisualiser l\'estimation finale' };
+      if (!participant || participant.role !== 'manager') {
+        const errorResponse: ErrorResponse = { message: 'Seul le manager peut prévisualiser l\'estimation finale' };
         socket.emit('error', errorResponse);
         return;
       }
@@ -302,8 +302,8 @@ export function registerEstimateHandlers(io: Server, socket: Socket) {
       const participant = Array.from(room.participants.values())
         .find(p => p.socketId === socket.id);
       
-      if (!participant || participant.role !== 'creator') {
-        const errorResponse: ErrorResponse = { message: 'Seul le créateur peut définir l\'estimation finale' };
+      if (!participant || participant.role !== 'manager') {
+        const errorResponse: ErrorResponse = { message: 'Seul le manager peut définir l\'estimation finale' };
         socket.emit('error', errorResponse);
         return;
       }

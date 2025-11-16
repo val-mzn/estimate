@@ -86,11 +86,41 @@ export async function updateParticipant(
 
 export async function updateParticipantRole(
   id: string,
-  role: 'participant' | 'spectator'
+  role: 'participant' | 'spectator' | 'manager',
+  participationMode?: 'participant' | 'spectator'
+): Promise<Participant> {
+  // Construire l'objet de mise à jour dynamiquement
+  const updateData: { role: string; participationMode?: 'participant' | 'spectator' | null } = { role };
+  
+  // Ne mettre à jour participationMode que s'il est explicitement fourni
+  // Si participationMode est undefined, ne pas l'inclure dans l'update pour préserver la valeur existante
+  if (participationMode !== undefined) {
+    updateData.participationMode = participationMode;
+  }
+  
+  const participant = await prisma.participant.update({
+    where: { id },
+    data: updateData
+  });
+
+  return {
+    id: participant.id,
+    socketId: participant.socketId,
+    name: participant.name,
+    role: participant.role as ParticipantRole,
+    currentEstimate: participant.currentEstimate,
+    joinedAt: participant.joinedAt,
+    participationMode: participant.participationMode as 'participant' | 'spectator' | undefined
+  };
+}
+
+export async function updateParticipantName(
+  id: string,
+  name: string
 ): Promise<Participant> {
   const participant = await prisma.participant.update({
     where: { id },
-    data: { role }
+    data: { name }
   });
 
   return {

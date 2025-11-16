@@ -28,6 +28,8 @@
     "userNamePlaceholder": "Ex: Jean Dupont",
     "cardSet": "Jeu de cartes",
     "cardSetPlaceholder": "0, 1, 2, 3, 5, 8, 13, 21, 30, 50, 100",
+    "anonymousVotes": "Anonymiser les votes",
+    "anonymousVotesDescription": "Masquer les badges des participants dans les résultats",
     "creating": "Création...",
     "createButton": "Créer la salle",
     "fillAllFields": "Veuillez remplir tous les champs"
@@ -100,16 +102,28 @@
   },
   "participants": {
     "title": "Participants",
-    "creator": "Créateur",
+    "manager": "Manager",
     "setAsParticipant": "Passer en participant",
     "setAsSpectator": "Passer en spectateur",
-    "removeFromRoom": "Retirer de la salle"
+    "removeFromRoom": "Retirer de la salle",
+    "becameManager": "Vous avez été nommé manager",
+    "rename": "Renommer",
+    "renameTitle": "Renommer le participant",
+    "renameDescription": "Changer le nom de {{name}}",
+    "newName": "Nouveau nom",
+    "newNamePlaceholder": "Entrez le nouveau nom",
+    "transferManagerRole": "Transférer le rôle de manager"
   },
   "roomHeader": {
     "code": "Code: {{code}}",
     "copyLink": "Copier le lien",
     "copied": "Copié!",
-    "leave": "Quitter"
+    "leave": "Quitter",
+    "changeName": "Changer de nom",
+    "changeCardSet": "Changer le jeu de cartes",
+    "anonymousVotes": "Votes anonymes",
+    "newName": "Nouveau nom",
+    "newNamePlaceholder": "Entrez votre nouveau nom"
   },
   "chart": {
     "votes": "Votes",

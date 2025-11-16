@@ -2,8 +2,8 @@ import type { Participant } from '../types';
 
 export function isActiveParticipant(participant: Participant): boolean {
   const isParticipant = participant.role === 'participant';
-  const isCreatorParticipating = participant.role === 'creator' && participant.participationMode === 'participant';
-  return isParticipant || isCreatorParticipating;
+  const isManagerParticipating = participant.role === 'manager' && participant.participationMode === 'participant';
+  return isParticipant || isManagerParticipating;
 }
 
 export function parseNumericCardSet(cardSet: string[]): number[] {

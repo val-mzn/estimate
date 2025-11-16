@@ -4,7 +4,7 @@ import type { Task } from '../types';
 interface TaskDetailsState {
   // Computed values
   currentTask: Task | null;
-  isCreator: boolean;
+  isManager: boolean;
   isParticipant: boolean;
   currentUserEstimate: string | null;
   numericCardSet: number[];
@@ -72,7 +72,7 @@ export const useTaskDetailsStore = create<TaskDetailsState>((set, get) => {
 
   return {
     currentTask: null,
-    isCreator: false,
+    isManager: false,
     isParticipant: false,
     currentUserEstimate: null,
     numericCardSet: [],

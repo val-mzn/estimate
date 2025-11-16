@@ -20,7 +20,8 @@ interface RoomState {
   addParticipant: (participant: Participant) => void;
   removeParticipant: (participantId: string) => void;
   updateParticipantEstimate: (participantId: string, estimate: string | null) => void;
-  updateParticipantRole: (participantId: string, role: 'participant' | 'spectator') => void;
+  updateParticipantRole: (participantId: string, role: 'participant' | 'spectator' | 'manager', participationMode?: 'participant' | 'spectator') => void;
+  updateParticipantName: (participantId: string, name: string) => void;
   
   // Task actions
   addTask: (task: Task) => void;
@@ -31,6 +32,10 @@ interface RoomState {
   // Estimate actions
   setRevealed: (revealed: boolean) => void;
   resetEstimates: () => void;
+  
+  // Room settings
+  updateCardSet: (cardSet: string[]) => void;
+  updateAnonymousVotes: (anonymousVotes: boolean) => void;
   
   // Reset
   reset: () => void;
@@ -83,19 +88,47 @@ export const useRoomStore = create<RoomState>((set) => ({
       };
     }),
   
-  updateParticipantRole: (participantId, role) =>
+  updateParticipantRole: (participantId, role, participationMode) =>
     set((state) => {
       if (!state.room) return state;
       // Si le rôle devient spectateur, réinitialiser l'estimation
       const participants = state.room.participants.map((p) =>
         p.id === participantId 
-          ? { ...p, role, currentEstimate: role === 'spectator' ? null : p.currentEstimate }
+          ? { 
+              ...p, 
+              role, 
+              participationMode: participationMode !== undefined ? participationMode : p.participationMode,
+              currentEstimate: role === 'spectator' ? null : p.currentEstimate 
+            }
           : p
       );
       
       // Si c'est l'utilisateur actuel dont le rôle change, mettre à jour currentUser aussi
       const updatedCurrentUser = state.currentUser?.id === participantId
-        ? { ...state.currentUser, role, currentEstimate: role === 'spectator' ? null : state.currentUser.currentEstimate }
+        ? { 
+            ...state.currentUser, 
+            role, 
+            participationMode: participationMode !== undefined ? participationMode : state.currentUser.participationMode,
+            currentEstimate: role === 'spectator' ? null : state.currentUser.currentEstimate 
+          }
+        : state.currentUser;
+      
+      return {
+        room: { ...state.room, participants },
+        currentUser: updatedCurrentUser,
+      };
+    }),
+  
+  updateParticipantName: (participantId, name) =>
+    set((state) => {
+      if (!state.room) return state;
+      const participants = state.room.participants.map((p) =>
+        p.id === participantId ? { ...p, name } : p
+      );
+      
+      // Si c'est l'utilisateur actuel dont le nom change, mettre à jour currentUser aussi
+      const updatedCurrentUser = state.currentUser?.id === participantId
+        ? { ...state.currentUser, name }
         : state.currentUser;
       
       return {
@@ -190,6 +223,22 @@ export const useRoomStore = create<RoomState>((set) => ({
           participants,
           isRevealed: false,
         },
+      };
+    }),
+  
+  updateCardSet: (cardSet) =>
+    set((state) => {
+      if (!state.room) return state;
+      return {
+        room: { ...state.room, cardSet },
+      };
+    }),
+  
+  updateAnonymousVotes: (anonymousVotes) =>
+    set((state) => {
+      if (!state.room) return state;
+      return {
+        room: { ...state.room, anonymousVotes },
       };
     }),
   

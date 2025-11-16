@@ -14,7 +14,7 @@ interface VotingSectionProps {
     participants?: Participant[];
     currentTaskId?: string | null;
     onEstimate: (value: string) => void;
-    isCreator?: boolean;
+    isManager?: boolean;
     isRevealed?: boolean;
     onReveal?: () => void;
 }
@@ -27,14 +27,14 @@ export default function VotingSection({
     participants = [],
     currentTaskId = null,
     onEstimate,
-    isCreator = false,
+    isManager = false,
     isRevealed = false,
     onReveal,
 }: VotingSectionProps) {
     const { t } = useTranslation();
     const [showWarningModal, setShowWarningModal] = useState(false);
     const allVoted = votedParticipants === totalParticipants && totalParticipants > 0;
-    const shouldShowButton = isCreator && !isRevealed && onReveal;
+    const shouldShowButton = isManager && !isRevealed && onReveal;
 
     const handleRevealClick = () => {
         if (allVoted) {
@@ -55,7 +55,7 @@ export default function VotingSection({
                 votedParticipants={votedParticipants} 
                 totalParticipants={totalParticipants}
                 participants={participants}
-                isCreator={isCreator}
+                isManager={isManager}
                 currentTaskId={currentTaskId}
             />
             <div className="mb-6">

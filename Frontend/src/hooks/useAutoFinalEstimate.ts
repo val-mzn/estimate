@@ -3,7 +3,7 @@ import type { Room, Task } from '../types';
 import { hasNoNumericEstimates, getAbstentionPercentage } from '../utils/estimateUtils';
 
 interface UseAutoFinalEstimateParams {
-  isCreator: boolean;
+  isManager: boolean;
   room: Room | null;
   currentTask: Task | undefined;
   roomCode: string | undefined;
@@ -13,7 +13,7 @@ interface UseAutoFinalEstimateParams {
 }
 
 export function useAutoFinalEstimate({
-  isCreator,
+  isManager,
   room,
   currentTask,
   roomCode,
@@ -22,7 +22,7 @@ export function useAutoFinalEstimate({
   setFinalEstimate,
 }: UseAutoFinalEstimateParams) {
   useEffect(() => {
-    if (!isCreator || !room?.isRevealed || !currentTask || !roomCode) {
+    if (!isManager || !room?.isRevealed || !currentTask || !roomCode) {
       return;
     }
     
@@ -54,7 +54,7 @@ export function useAutoFinalEstimate({
     currentTask,
     medianEstimate,
     estimatesForCurrentTask.length,
-    isCreator,
+    isManager,
     roomCode,
     setFinalEstimate,
   ]);

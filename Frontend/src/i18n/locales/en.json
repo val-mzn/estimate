@@ -28,6 +28,8 @@
     "userNamePlaceholder": "Ex: John Doe",
     "cardSet": "Card set",
     "cardSetPlaceholder": "0, 1, 2, 3, 5, 8, 13, 21, 30, 50, 100",
+    "anonymousVotes": "Anonymous votes",
+    "anonymousVotesDescription": "Hide participant badges in results",
     "creating": "Creating...",
     "createButton": "Create room",
     "fillAllFields": "Please fill in all fields"
@@ -100,16 +102,28 @@
   },
   "participants": {
     "title": "Participants",
-    "creator": "Creator",
+    "manager": "Manager",
     "setAsParticipant": "Set as participant",
     "setAsSpectator": "Set as spectator",
-    "removeFromRoom": "Remove from room"
+    "removeFromRoom": "Remove from room",
+    "becameManager": "You have been appointed manager",
+    "rename": "Rename",
+    "renameTitle": "Rename participant",
+    "renameDescription": "Change the name of {{name}}",
+    "newName": "New name",
+    "newNamePlaceholder": "Enter the new name",
+    "transferManagerRole": "Transfer manager role"
   },
   "roomHeader": {
     "code": "Code: {{code}}",
     "copyLink": "Copy link",
     "copied": "Copied!",
-    "leave": "Leave"
+    "leave": "Leave",
+    "changeName": "Change name",
+    "changeCardSet": "Change card set",
+    "anonymousVotes": "Anonymous votes",
+    "newName": "New name",
+    "newNamePlaceholder": "Enter your new name"
   },
   "chart": {
     "votes": "Votes",

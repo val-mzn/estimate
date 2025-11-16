@@ -1,5 +1,6 @@
 import { useEffect, useRef, useCallback } from 'react';
 import { toast } from 'sonner';
+import { useTranslation } from 'react-i18next';
 import { socketService } from '../services/socketService';
 import { useRoomStore } from '../stores/roomStore';
 import type {
@@ -7,6 +8,9 @@ import type {
   ParticipantJoinedResponse,
   ParticipantLeftResponse,
   ParticipantRoleChangedResponse,
+  ParticipantNameChangedResponse,
+  CardSetChangedResponse,
+  AnonymousVotesChangedResponse,
   TaskCreatedResponse,
   TaskDeletedResponse,
   TaskSelectedResponse,
@@ -23,6 +27,7 @@ interface UseSocketCallbacks {
   onRoomJoined?: (response: RoomJoinedResponse) => void;
   onParticipantJoined?: (response: ParticipantJoinedResponse) => void;
   onParticipantLeft?: (response: ParticipantLeftResponse) => void;
+  onParticipantNameChanged?: (response: ParticipantNameChangedResponse) => void;
   onTaskCreated?: (response: TaskCreatedResponse) => void;
   onTaskDeleted?: (response: TaskDeletedResponse) => void;
   onTaskSelected?: (response: TaskSelectedResponse) => void;
@@ -37,6 +42,7 @@ interface UseSocketCallbacks {
 
 export function useSocket(callbacks: UseSocketCallbacks = {}) {
   const callbacksRef = useRef(callbacks);
+  const { t } = useTranslation();
   const {
     setRoom,
     setCurrentUser,
@@ -45,6 +51,9 @@ export function useSocket(callbacks: UseSocketCallbacks = {}) {
     removeParticipant,
     updateParticipantEstimate,
     updateParticipantRole,
+    updateParticipantName,
+    updateCardSet,
+    updateAnonymousVotes,
     addTask,
     removeTask,
     setCurrentTask,
@@ -53,6 +62,11 @@ export function useSocket(callbacks: UseSocketCallbacks = {}) {
     resetEstimates: resetEstimatesStore,
     reset,
   } = useRoomStore();
+  
+  // Utiliser getState pour obtenir le currentUser actuel dans les handlers
+  const getCurrentUser = useCallback(() => {
+    return useRoomStore.getState().currentUser;
+  }, []);
 
   useEffect(() => {
     callbacksRef.current = callbacks;
@@ -76,7 +90,33 @@ export function useSocket(callbacks: UseSocketCallbacks = {}) {
     };
 
     const handleParticipantRoleChanged = (response: ParticipantRoleChangedResponse) => {
-      updateParticipantRole(response.participant.id, response.participant.role as 'participant' | 'spectator');
+      const currentUser = getCurrentUser();
+      const isCurrentUser = currentUser?.id === response.participant.id;
+      const becameManager = response.participant.role === 'manager';
+      
+      updateParticipantRole(
+        response.participant.id, 
+        response.participant.role as 'participant' | 'spectator' | 'manager',
+        response.participant.participationMode
+      );
+      
+      // Afficher un toast si l'utilisateur actuel devient manager
+      if (isCurrentUser && becameManager) {
+        toast.success(t('participants.becameManager'));
+      }
+    };
+
+    const handleParticipantNameChanged = (response: ParticipantNameChangedResponse) => {
+      updateParticipantName(response.participant.id, response.participant.name);
+      callbacksRef.current.onParticipantNameChanged?.(response);
+    };
+
+    const handleCardSetChanged = (response: CardSetChangedResponse) => {
+      updateCardSet(response.cardSet);
+    };
+
+    const handleAnonymousVotesChanged = (response: AnonymousVotesChangedResponse) => {
+      updateAnonymousVotes(response.anonymousVotes);
     };
 
     const handleTaskCreated = (response: TaskCreatedResponse) => {
@@ -157,6 +197,9 @@ export function useSocket(callbacks: UseSocketCallbacks = {}) {
     socketService.onParticipantJoined(handleParticipantJoined);
     socketService.onParticipantLeft(handleParticipantLeft);
     socketService.onParticipantRoleChanged(handleParticipantRoleChanged);
+    socketService.onParticipantNameChanged(handleParticipantNameChanged);
+    socketService.onCardSetChanged(handleCardSetChanged);
+    socketService.onAnonymousVotesChanged(handleAnonymousVotesChanged);
     socketService.onTaskCreated(handleTaskCreated);
     socketService.onTaskDeleted(handleTaskDeleted);
     socketService.onTaskSelected(handleTaskSelected);
@@ -174,6 +217,9 @@ export function useSocket(callbacks: UseSocketCallbacks = {}) {
       socketService.offParticipantJoined(handleParticipantJoined);
       socketService.offParticipantLeft(handleParticipantLeft);
       socketService.offParticipantRoleChanged(handleParticipantRoleChanged);
+      socketService.offParticipantNameChanged(handleParticipantNameChanged);
+      socketService.offCardSetChanged(handleCardSetChanged);
+      socketService.offAnonymousVotesChanged(handleAnonymousVotesChanged);
       socketService.offTaskCreated(handleTaskCreated);
       socketService.offTaskDeleted(handleTaskDeleted);
       socketService.offTaskSelected(handleTaskSelected);
@@ -195,6 +241,9 @@ export function useSocket(callbacks: UseSocketCallbacks = {}) {
     removeParticipant,
     updateParticipantEstimate,
     updateParticipantRole,
+    updateParticipantName,
+    updateCardSet,
+    updateAnonymousVotes,
     addTask,
     removeTask,
     setCurrentTask,
@@ -219,6 +268,7 @@ export function useSocket(callbacks: UseSocketCallbacks = {}) {
           code: response.roomCode,
           name: response.roomName,
           cardSet: response.cardSet,
+          anonymousVotes: response.anonymousVotes,
           participants: [participant],
           tasks: [],
           currentTaskId: null,
@@ -247,6 +297,7 @@ export function useSocket(callbacks: UseSocketCallbacks = {}) {
           code: response.roomCode,
           name: response.roomName,
           cardSet: response.cardSet,
+          anonymousVotes: response.anonymousVotes,
           participants: response.participants,
           tasks: response.tasks.map(task => ({
             ...task,

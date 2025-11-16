@@ -10,6 +10,8 @@ import RoleSelector from '../components/RoleSelector';
 import PageHeader from '../components/PageHeader';
 import { Button } from '../components/ui/button';
 import { Card, CardContent } from '../components/ui/card';
+import { Switch } from '../components/ui/switch';
+import { Label } from '../components/ui/label';
 
 const LAST_USER_NAME_KEY = 'estimate_last_user_name';
 
@@ -20,6 +22,7 @@ export default function CreateRoomPage() {
     const [userName, setUserName] = useState('');
     const [cardSet, setCardSet] = useState('0, 0.5, 1, 2, 3, 5, 8, 13, 21, 40, 100, ?, ∞, ☕');
     const [role, setRole] = useState<'participant' | 'spectator'>('participant');
+    const [anonymousVotes, setAnonymousVotes] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     
     const { createRoom } = useSocket({
@@ -59,6 +62,7 @@ export default function CreateRoomPage() {
                 userName: trimmedUserName,
                 cardSet: cardSet.trim(),
                 role,
+                anonymousVotes,
             },
             (response) => {
                 navigate(`/room/${response.roomCode}`);
@@ -104,6 +108,23 @@ export default function CreateRoomPage() {
                         />
 
                         <RoleSelector role={role} onRoleChange={setRole} />
+
+                        <div className="flex items-center justify-between space-x-2 p-4 border rounded-lg">
+                            <div className="space-y-0.5">
+                                <Label htmlFor="anonymousVotes" className="text-sm font-medium">
+                                    {t('createRoom.anonymousVotes')}
+                                </Label>
+                                <p className="text-xs text-muted-foreground">
+                                    {t('createRoom.anonymousVotesDescription')}
+                                </p>
+                            </div>
+                            <Switch
+                                id="anonymousVotes"
+                                checked={anonymousVotes}
+                                onCheckedChange={setAnonymousVotes}
+                                disabled={isLoading}
+                            />
+                        </div>
 
                         <Button
                             type="submit"

@@ -29,7 +29,7 @@ io.on('connection', (socket: Socket) => {
   registerRoomHandlers(io, socket);
   registerTaskHandlers(io, socket);
   registerEstimateHandlers(io, socket);
-  registerDisconnectHandler(socket);
+  registerDisconnectHandler(io, socket);
 });
 
 const PORT = process.env.PORT || 3001;

@@ -1,4 +1,4 @@
-export type ParticipantRole = 'participant' | 'spectator' | 'creator';
+export type ParticipantRole = 'participant' | 'spectator' | 'manager';
 
 export interface Participant {
   id: string;
@@ -7,7 +7,7 @@ export interface Participant {
   role: ParticipantRole;
   currentEstimate: string | null;
   joinedAt: Date;
-  participationMode?: 'participant' | 'spectator'; // Pour les creators uniquement
+  participationMode?: 'participant' | 'spectator'; // Pour les managers uniquement
 }
 
 export interface Task {
@@ -27,6 +27,7 @@ export interface Room {
   tasks: Map<string, Task>;
   currentTaskId: string | null;
   isRevealed: boolean;
+  anonymousVotes: boolean;
   createdAt: Date;
 }
 
@@ -35,6 +36,7 @@ export interface CreateRoomPayload {
   userName: string;
   cardSet: string;
   role: 'participant' | 'spectator';
+  anonymousVotes?: boolean;
 }
 
 export interface JoinRoomPayload {
@@ -52,6 +54,32 @@ export interface ChangeParticipantRolePayload {
   roomCode: string;
   participantId: string;
   role: 'participant' | 'spectator';
+}
+
+export interface ChangeParticipantNamePayload {
+  roomCode: string;
+  participantId: string;
+  name: string;
+}
+
+export interface ChangeOwnNamePayload {
+  roomCode: string;
+  name: string;
+}
+
+export interface ChangeCardSetPayload {
+  roomCode: string;
+  cardSet: string;
+}
+
+export interface ChangeAnonymousVotesPayload {
+  roomCode: string;
+  anonymousVotes: boolean;
+}
+
+export interface TransferManagerRolePayload {
+  roomCode: string;
+  participantId: string;
 }
 
 export interface CreateTaskPayload {
@@ -109,6 +137,7 @@ export interface RoomCreatedResponse {
   roomCode: string;
   roomName: string;
   cardSet: string[];
+  anonymousVotes: boolean;
   participant: {
     id: string;
     name: string;
@@ -121,6 +150,7 @@ export interface RoomJoinedResponse {
   roomCode: string;
   roomName: string;
   cardSet: string[];
+  anonymousVotes: boolean;
   participant: {
     id: string;
     name: string;
@@ -160,6 +190,24 @@ export interface ParticipantRoleChangedResponse {
     currentEstimate: string | null;
     participationMode?: 'participant' | 'spectator';
   };
+}
+
+export interface ParticipantNameChangedResponse {
+  participant: {
+    id: string;
+    name: string;
+    role: ParticipantRole;
+    currentEstimate: string | null;
+    participationMode?: 'participant' | 'spectator';
+  };
+}
+
+export interface CardSetChangedResponse {
+  cardSet: string[];
+}
+
+export interface AnonymousVotesChangedResponse {
+  anonymousVotes: boolean;
 }
 
 export interface TaskCreatedResponse {

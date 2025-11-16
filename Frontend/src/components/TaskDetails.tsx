@@ -26,7 +26,7 @@ export default function TaskDetails({ cardSet }: TaskDetailsProps) {
     const {
         currentTask,
         isParticipant,
-        isCreator,
+        isManager,
         currentUserEstimate,
         estimatesForCurrentTask,
         averageEstimate,
@@ -104,6 +104,7 @@ export default function TaskDetails({ cardSet }: TaskDetailsProps) {
                                 median={medianEstimate ?? 0}
                                 cardSet={cardSet}
                                 participants={room.participants}
+                                anonymousVotes={room.anonymousVotes}
                             />
                             <EstimateMetrics
                                 participants={room.participants}
@@ -116,16 +117,16 @@ export default function TaskDetails({ cardSet }: TaskDetailsProps) {
                             value={currentTask.finalEstimate}
                             medianEstimate={hasNoNumeric ? null : medianEstimate}
                             hasNoNumericEstimates={hasNoNumeric}
-                            readOnly={!isCreator}
+                            readOnly={!isManager}
                             numericCardSet={numericCardSet}
                             participants={room.participants}
-                            onPreviewChange={isCreator ? onFinalEstimatePreview ?? undefined : undefined}
-                            onValueChange={isCreator ? onFinalEstimateChange ?? undefined : undefined}
-                            getPreviousCardValue={isCreator ? getPreviousCardValue : undefined}
-                            getNextCardValue={isCreator ? getNextCardValue : undefined}
-                            onSave={isCreator ? onCloseTask ?? undefined : undefined}
+                            onPreviewChange={isManager ? onFinalEstimatePreview ?? undefined : undefined}
+                            onValueChange={isManager ? onFinalEstimateChange ?? undefined : undefined}
+                            getPreviousCardValue={isManager ? getPreviousCardValue : undefined}
+                            getNextCardValue={isManager ? getNextCardValue : undefined}
+                            onSave={isManager ? onCloseTask ?? undefined : undefined}
                         />
-                        {isCreator && onHide && (
+                        {isManager && onHide && (
 
                             <Button
                                 onClick={onHide}
@@ -149,7 +150,7 @@ export default function TaskDetails({ cardSet }: TaskDetailsProps) {
                                 participants={room.participants}
                                 currentTaskId={currentTask.id}
                                 onEstimate={onEstimate}
-                                isCreator={isCreator}
+                                isManager={isManager}
                                 isRevealed={isRevealedState}
                                 onReveal={onReveal || undefined}
                             />
@@ -159,10 +160,10 @@ export default function TaskDetails({ cardSet }: TaskDetailsProps) {
                                     votedParticipants={votedParticipants}
                                     totalParticipants={totalParticipants}
                                     participants={room.participants}
-                                    isCreator={isCreator}
+                                    isManager={isManager}
                                     currentTaskId={currentTask.id}
                                 />
-                                {isCreator && !isRevealedState && onReveal && (
+                                {isManager && !isRevealedState && onReveal && (
                                     <div className="mb-6">
                                         <Button
                                             onClick={handleRevealClick}

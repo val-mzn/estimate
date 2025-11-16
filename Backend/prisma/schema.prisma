@@ -13,6 +13,7 @@ model Room {
   cardSet       String
   currentTaskId String?
   isRevealed    Boolean       @default(false)
+  anonymousVotes Boolean       @default(false)
   createdAt     DateTime      @default(now())
   participants  Participant[]
   tasks         Task[]

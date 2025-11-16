@@ -4,7 +4,7 @@ import { cn } from '@/lib/utils';
 import { type VariantProps } from 'class-variance-authority';
 
 const customBadgeVariants = {
-    creator: 'bg-yellow-100 text-yellow-800 border-yellow-200',
+    manager: 'bg-yellow-100 text-yellow-800 border-yellow-200',
     participant: 'bg-blue-100 text-blue-800 border-blue-200',
     spectator: 'bg-gray-100 text-gray-800 border-gray-200',
     voted: 'bg-green-100 text-green-700 border-green-200',
@@ -13,11 +13,11 @@ const customBadgeVariants = {
 export interface BadgeProps extends VariantProps<typeof badgeVariants> {
     children: ReactNode;
     className?: string;
-    variant?: 'creator' | 'participant' | 'spectator' | 'voted' | 'default' | 'secondary' | 'destructive' | 'outline';
+    variant?: 'manager' | 'participant' | 'spectator' | 'voted' | 'default' | 'secondary' | 'destructive' | 'outline';
 }
 
 export default function Badge({ variant = 'participant', children, className }: BadgeProps) {
-    const isCustomVariant = variant === 'creator' || variant === 'participant' || variant === 'spectator' || variant === 'voted';
+    const isCustomVariant = variant === 'manager' || variant === 'participant' || variant === 'spectator' || variant === 'voted';
     
     if (isCustomVariant) {
         return (

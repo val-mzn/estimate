@@ -8,7 +8,7 @@ interface TaskItemProps {
     task: Task;
     isCurrent: boolean;
     isEstimated: boolean;
-    isCreator: boolean;
+    isManager: boolean;
     onClick: () => void;
     onDelete: () => void;
 }
@@ -17,7 +17,7 @@ export default function TaskItem({
     task,
     isCurrent,
     isEstimated,
-    isCreator,
+    isManager,
     onClick,
     onDelete,
 }: TaskItemProps) {
@@ -53,7 +53,7 @@ export default function TaskItem({
                         {task.title}
                     </h3>
                 </div>
-                {isCreator && (
+                {isManager && (
                     <Button
                         variant="ghost"
                         size="icon"

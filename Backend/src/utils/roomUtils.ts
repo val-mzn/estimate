@@ -14,7 +14,8 @@ export function createRoom(
   roomName: string,
   creatorId: string,
   creatorName: string,
-  cardSet: string
+  cardSet: string,
+  anonymousVotes: boolean = false
 ): Room {
   return {
     code: roomCode,
@@ -24,6 +25,7 @@ export function createRoom(
     tasks: new Map<string, Task>(),
     currentTaskId: null,
     isRevealed: false,
+    anonymousVotes,
     createdAt: new Date()
   };
 }

@@ -8,7 +8,7 @@ interface VoteProgressProps {
     votedParticipants: number;
     totalParticipants: number;
     participants?: Participant[];
-    isCreator?: boolean;
+    isManager?: boolean;
     currentTaskId?: string | null;
 }
 
@@ -16,20 +16,20 @@ export default function VoteProgress({
     votedParticipants, 
     totalParticipants, 
     participants = [],
-    isCreator = false,
+    isManager = false,
     currentTaskId = null
 }: VoteProgressProps) {
     const { t } = useTranslation();
     const voteProgress = totalParticipants > 0 ? (votedParticipants / totalParticipants) * 100 : 0;
 
     const notVotedParticipants = useMemo(() => {
-        if (!isCreator || !currentTaskId) return [];
+        if (!isManager || !currentTaskId) return [];
         
         return participants.filter((p) => {
             return isActiveParticipant(p) && 
                    (p.currentEstimate === null || p.currentEstimate === undefined);
         });
-    }, [participants, isCreator, currentTaskId]);
+    }, [participants, isManager, currentTaskId]);
 
     return (
         <div className="mb-4">
@@ -42,7 +42,7 @@ export default function VoteProgress({
                 </span>
             </div>
             <Progress value={voteProgress} />
-            {isCreator && notVotedParticipants.length > 0 && (
+            {isManager && notVotedParticipants.length > 0 && (
                 <div className="mt-2">
                     <p className="text-xs text-muted-foreground mb-1">
                         {t('voting.waiting')} :

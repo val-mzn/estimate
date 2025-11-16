@@ -5,11 +5,19 @@ import {
   JoinRoomPayload,
   RemoveParticipantPayload,
   ChangeParticipantRolePayload,
+  ChangeParticipantNamePayload,
+  ChangeOwnNamePayload,
+  ChangeCardSetPayload,
+  ChangeAnonymousVotesPayload,
+  TransferManagerRolePayload,
   RoomCreatedResponse,
   RoomJoinedResponse,
   ParticipantJoinedResponse,
   ParticipantLeftResponse,
   ParticipantRoleChangedResponse,
+  ParticipantNameChangedResponse,
+  CardSetChangedResponse,
+  AnonymousVotesChangedResponse,
   ErrorResponse
 } from '../types.js';
 import { generateRoomCode, serializeTask } from '../utils/roomUtils.js';
@@ -20,16 +28,16 @@ import logger from '../utils/logger.js';
 export function registerRoomHandlers(io: Server, socket: Socket) {
   socket.on('create-room', async (payload: CreateRoomPayload) => {
     try {
-      const { roomName, userName, cardSet, role } = payload;
+      const { roomName, userName, cardSet, role, anonymousVotes = false } = payload;
       const roomCode = generateRoomCode();
       const userId = socket.id;
       
-      await roomService.createRoom(roomCode, roomName, cardSet.split(',').map(c => c.trim()));
+      await roomService.createRoom(roomCode, roomName, cardSet.split(',').map(c => c.trim()), anonymousVotes);
       const participant = await participantService.createParticipant(
         userId,
         socket.id,
         userName,
-        'creator',
+        'manager',
         roomCode,
         role
       );
@@ -40,6 +48,7 @@ export function registerRoomHandlers(io: Server, socket: Socket) {
         roomCode,
         roomName,
         cardSet: cardSet.split(',').map(c => c.trim()),
+        anonymousVotes,
         participant: {
           id: participant.id,
           name: participant.name,
@@ -92,6 +101,7 @@ export function registerRoomHandlers(io: Server, socket: Socket) {
         roomCode: room.code,
         roomName: room.name,
         cardSet: room.cardSet,
+        anonymousVotes: room.anonymousVotes,
         participant: {
           id: participant.id,
           name: participant.name,
@@ -145,8 +155,8 @@ export function registerRoomHandlers(io: Server, socket: Socket) {
       const requester = Array.from(room.participants.values())
         .find(p => p.socketId === socket.id);
       
-      if (!requester || requester.role !== 'creator') {
-        const errorResponse: ErrorResponse = { message: 'Seul le créateur peut retirer des participants' };
+      if (!requester || requester.role !== 'manager') {
+        const errorResponse: ErrorResponse = { message: 'Seul le manager peut retirer des participants' };
         socket.emit('error', errorResponse);
         return;
       }
@@ -159,8 +169,8 @@ export function registerRoomHandlers(io: Server, socket: Socket) {
         return;
       }
 
-      if (participantToRemove.role === 'creator') {
-        const errorResponse: ErrorResponse = { message: 'Le créateur ne peut pas être retiré' };
+      if (participantToRemove.role === 'manager') {
+        const errorResponse: ErrorResponse = { message: 'Le manager ne peut pas être retiré' };
         socket.emit('error', errorResponse);
         return;
       }
@@ -177,7 +187,7 @@ export function registerRoomHandlers(io: Server, socket: Socket) {
         participantId: participantId
       };
       
-      io.to(participantToRemove.socketId).emit('kicked', { message: 'Vous avez été retiré de la salle par le créateur' });
+      io.to(participantToRemove.socketId).emit('kicked', { message: 'Vous avez été retiré de la salle par le manager' });
       io.to(roomCode).emit('participant-left', response);
       
       const updatedRoom = await roomService.getRoom(roomCode);
@@ -212,8 +222,8 @@ export function registerRoomHandlers(io: Server, socket: Socket) {
       const requester = Array.from(room.participants.values())
         .find(p => p.socketId === socket.id);
       
-      if (!requester || requester.role !== 'creator') {
-        const errorResponse: ErrorResponse = { message: 'Seul le créateur peut changer le rôle des participants' };
+      if (!requester || requester.role !== 'manager') {
+        const errorResponse: ErrorResponse = { message: 'Seul le manager peut changer le rôle des participants' };
         socket.emit('error', errorResponse);
         return;
       }
@@ -226,8 +236,8 @@ export function registerRoomHandlers(io: Server, socket: Socket) {
         return;
       }
 
-      if (participantToChange.role === 'creator') {
-        const errorResponse: ErrorResponse = { message: 'Le rôle du créateur ne peut pas être modifié' };
+      if (participantToChange.role === 'manager') {
+        const errorResponse: ErrorResponse = { message: 'Le rôle du manager ne peut pas être modifié' };
         socket.emit('error', errorResponse);
         return;
       }
@@ -256,6 +266,303 @@ export function registerRoomHandlers(io: Server, socket: Socket) {
       const errorResponse: ErrorResponse = { message: 'Erreur lors du changement de rôle du participant' };
       socket.emit('error', errorResponse);
       logger.error('Error changing participant role', { error, roomCode: payload.roomCode, socketId: socket.id });
+    }
+  });
+
+  socket.on('change-participant-name', async (payload: ChangeParticipantNamePayload) => {
+    try {
+      const { roomCode, participantId, name } = payload;
+      const room = await roomService.getRoom(roomCode);
+      
+      if (!room) {
+        const errorResponse: ErrorResponse = { message: 'Room introuvable' };
+        socket.emit('error', errorResponse);
+        return;
+      }
+
+      const requester = Array.from(room.participants.values())
+        .find(p => p.socketId === socket.id);
+      
+      if (!requester || requester.role !== 'manager') {
+        const errorResponse: ErrorResponse = { message: 'Seul le manager peut renommer les participants' };
+        socket.emit('error', errorResponse);
+        return;
+      }
+
+      const participantToRename = room.participants.get(participantId);
+      
+      if (!participantToRename) {
+        const errorResponse: ErrorResponse = { message: 'Participant introuvable' };
+        socket.emit('error', errorResponse);
+        return;
+      }
+
+      if (!name || name.trim().length === 0) {
+        const errorResponse: ErrorResponse = { message: 'Le nom ne peut pas être vide' };
+        socket.emit('error', errorResponse);
+        return;
+      }
+
+      const updatedParticipant = await participantService.updateParticipantName(participantId, name.trim());
+      
+      const response: ParticipantNameChangedResponse = {
+        participant: {
+          id: updatedParticipant.id,
+          name: updatedParticipant.name,
+          role: updatedParticipant.role,
+          currentEstimate: updatedParticipant.currentEstimate,
+          participationMode: updatedParticipant.participationMode
+        }
+      };
+      
+      io.to(roomCode).emit('participant-name-changed', response);
+      
+      logger.info(`Participant ${participantToRename.name} renamed to ${updatedParticipant.name} in room ${roomCode} by ${requester.name}`, { 
+        roomCode, 
+        oldName: participantToRename.name,
+        newName: updatedParticipant.name,
+        requester: requester.name 
+      });
+    } catch (error) {
+      const errorResponse: ErrorResponse = { message: 'Erreur lors du renommage du participant' };
+      socket.emit('error', errorResponse);
+      logger.error('Error changing participant name', { error, roomCode: payload.roomCode, socketId: socket.id });
+    }
+  });
+
+  socket.on('change-own-name', async (payload: ChangeOwnNamePayload) => {
+    try {
+      const { roomCode, name } = payload;
+      const room = await roomService.getRoom(roomCode);
+      
+      if (!room) {
+        const errorResponse: ErrorResponse = { message: 'Room introuvable' };
+        socket.emit('error', errorResponse);
+        return;
+      }
+
+      const requester = Array.from(room.participants.values())
+        .find(p => p.socketId === socket.id);
+      
+      if (!requester) {
+        const errorResponse: ErrorResponse = { message: 'Participant introuvable' };
+        socket.emit('error', errorResponse);
+        return;
+      }
+
+      if (!name || name.trim().length === 0) {
+        const errorResponse: ErrorResponse = { message: 'Le nom ne peut pas être vide' };
+        socket.emit('error', errorResponse);
+        return;
+      }
+
+      const updatedParticipant = await participantService.updateParticipantName(requester.id, name.trim());
+      
+      const response: ParticipantNameChangedResponse = {
+        participant: {
+          id: updatedParticipant.id,
+          name: updatedParticipant.name,
+          role: updatedParticipant.role,
+          currentEstimate: updatedParticipant.currentEstimate,
+          participationMode: updatedParticipant.participationMode
+        }
+      };
+      
+      io.to(roomCode).emit('participant-name-changed', response);
+      
+      logger.info(`Participant ${requester.name} changed own name to ${updatedParticipant.name} in room ${roomCode}`, { 
+        roomCode, 
+        oldName: requester.name,
+        newName: updatedParticipant.name
+      });
+    } catch (error) {
+      const errorResponse: ErrorResponse = { message: 'Erreur lors du changement de nom' };
+      socket.emit('error', errorResponse);
+      logger.error('Error changing own name', { error, roomCode: payload.roomCode, socketId: socket.id });
+    }
+  });
+
+  socket.on('change-card-set', async (payload: ChangeCardSetPayload) => {
+    try {
+      const { roomCode, cardSet } = payload;
+      const room = await roomService.getRoom(roomCode);
+      
+      if (!room) {
+        const errorResponse: ErrorResponse = { message: 'Room introuvable' };
+        socket.emit('error', errorResponse);
+        return;
+      }
+
+      const requester = Array.from(room.participants.values())
+        .find(p => p.socketId === socket.id);
+      
+      if (!requester || requester.role !== 'manager') {
+        const errorResponse: ErrorResponse = { message: 'Seul le manager peut changer le jeu de cartes' };
+        socket.emit('error', errorResponse);
+        return;
+      }
+
+      if (!cardSet || cardSet.trim().length === 0) {
+        const errorResponse: ErrorResponse = { message: 'Le jeu de cartes ne peut pas être vide' };
+        socket.emit('error', errorResponse);
+        return;
+      }
+
+      const cardSetArray = cardSet.split(',').map(c => c.trim()).filter(c => c.length > 0);
+      
+      if (cardSetArray.length === 0) {
+        const errorResponse: ErrorResponse = { message: 'Le jeu de cartes doit contenir au moins une carte' };
+        socket.emit('error', errorResponse);
+        return;
+      }
+
+      await roomService.updateRoom(roomCode, { cardSet: cardSetArray });
+      
+      const response: CardSetChangedResponse = {
+        cardSet: cardSetArray
+      };
+      
+      io.to(roomCode).emit('card-set-changed', response);
+      
+      logger.info(`Card set changed in room ${roomCode} by ${requester.name}`, { 
+        roomCode, 
+        newCardSet: cardSetArray,
+        requester: requester.name 
+      });
+    } catch (error) {
+      const errorResponse: ErrorResponse = { message: 'Erreur lors du changement du jeu de cartes' };
+      socket.emit('error', errorResponse);
+      logger.error('Error changing card set', { error, roomCode: payload.roomCode, socketId: socket.id });
+    }
+  });
+
+  socket.on('change-anonymous-votes', async (payload: ChangeAnonymousVotesPayload) => {
+    try {
+      const { roomCode, anonymousVotes } = payload;
+      const room = await roomService.getRoom(roomCode);
+      
+      if (!room) {
+        const errorResponse: ErrorResponse = { message: 'Room introuvable' };
+        socket.emit('error', errorResponse);
+        return;
+      }
+
+      const requester = Array.from(room.participants.values())
+        .find(p => p.socketId === socket.id);
+      
+      if (!requester || requester.role !== 'manager') {
+        const errorResponse: ErrorResponse = { message: 'Seul le manager peut changer l\'anonymisation des votes' };
+        socket.emit('error', errorResponse);
+        return;
+      }
+
+      await roomService.updateRoom(roomCode, { anonymousVotes });
+      
+      const response: AnonymousVotesChangedResponse = {
+        anonymousVotes
+      };
+      
+      io.to(roomCode).emit('anonymous-votes-changed', response);
+      
+      logger.info(`Anonymous votes changed to ${anonymousVotes} in room ${roomCode} by ${requester.name}`, { 
+        roomCode, 
+        anonymousVotes,
+        requester: requester.name 
+      });
+    } catch (error) {
+      const errorResponse: ErrorResponse = { message: 'Erreur lors du changement de l\'anonymisation des votes' };
+      socket.emit('error', errorResponse);
+      logger.error('Error changing anonymous votes', { error, roomCode: payload.roomCode, socketId: socket.id });
+    }
+  });
+
+  socket.on('transfer-manager-role', async (payload: TransferManagerRolePayload) => {
+    try {
+      const { roomCode, participantId } = payload;
+      const room = await roomService.getRoom(roomCode);
+      
+      if (!room) {
+        const errorResponse: ErrorResponse = { message: 'Room introuvable' };
+        socket.emit('error', errorResponse);
+        return;
+      }
+
+      const requester = Array.from(room.participants.values())
+        .find(p => p.socketId === socket.id);
+      
+      if (!requester || requester.role !== 'manager') {
+        const errorResponse: ErrorResponse = { message: 'Seul le manager peut transférer le rôle de manager' };
+        socket.emit('error', errorResponse);
+        return;
+      }
+
+      if (requester.id === participantId) {
+        const errorResponse: ErrorResponse = { message: 'Vous ne pouvez pas transférer le rôle de manager à vous-même' };
+        socket.emit('error', errorResponse);
+        return;
+      }
+
+      const participantToPromote = room.participants.get(participantId);
+      
+      if (!participantToPromote) {
+        const errorResponse: ErrorResponse = { message: 'Participant introuvable' };
+        socket.emit('error', errorResponse);
+        return;
+      }
+
+      if (participantToPromote.role === 'manager') {
+        const errorResponse: ErrorResponse = { message: 'Ce participant est déjà manager' };
+        socket.emit('error', errorResponse);
+        return;
+      }
+
+      // Déterminer le nouveau rôle de l'ancien manager basé sur son participationMode
+      const oldManagerNewRole = requester.participationMode === 'spectator' ? 'spectator' : 'participant';
+      
+      // Déterminer le participationMode du nouveau manager
+      // Si c'était un participant normal, on lui donne 'participant' par défaut pour qu'il puisse continuer à voter
+      // Si c'était un spectateur, on lui donne 'spectator'
+      const newManagerParticipationMode = participantToPromote.role === 'spectator' ? 'spectator' : 'participant';
+      
+      // Transférer le rôle manager au nouveau participant en préservant son mode de participation
+      const newManager = await participantService.updateParticipantRole(participantId, 'manager', newManagerParticipationMode);
+      
+      // Changer le rôle de l'ancien manager
+      const oldManager = await participantService.updateParticipantRole(requester.id, oldManagerNewRole, requester.participationMode);
+      
+      // Émettre les événements pour les deux participants
+      const newManagerResponse: ParticipantRoleChangedResponse = {
+        participant: {
+          id: newManager.id,
+          name: newManager.name,
+          role: newManager.role,
+          currentEstimate: newManager.currentEstimate,
+          participationMode: newManager.participationMode
+        }
+      };
+      
+      const oldManagerResponse: ParticipantRoleChangedResponse = {
+        participant: {
+          id: oldManager.id,
+          name: oldManager.name,
+          role: oldManager.role,
+          currentEstimate: oldManager.currentEstimate,
+          participationMode: oldManager.participationMode
+        }
+      };
+      
+      io.to(roomCode).emit('participant-role-changed', newManagerResponse);
+      io.to(roomCode).emit('participant-role-changed', oldManagerResponse);
+      
+      logger.info(`Manager role transferred from ${requester.name} to ${newManager.name} in room ${roomCode}`, { 
+        roomCode, 
+        oldManager: requester.name,
+        newManager: newManager.name
+      });
+    } catch (error) {
+      const errorResponse: ErrorResponse = { message: 'Erreur lors du transfert du rôle de manager' };
+      socket.emit('error', errorResponse);
+      logger.error('Error transferring manager role', { error, roomCode: payload.roomCode, socketId: socket.id });
     }
   });
 }

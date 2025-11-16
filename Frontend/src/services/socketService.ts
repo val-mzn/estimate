@@ -4,6 +4,11 @@ import type {
   JoinRoomPayload,
   RemoveParticipantPayload,
   ChangeParticipantRolePayload,
+  ChangeParticipantNamePayload,
+  ChangeOwnNamePayload,
+  ChangeCardSetPayload,
+  ChangeAnonymousVotesPayload,
+  TransferManagerRolePayload,
   CreateTaskPayload,
   DeleteTaskPayload,
   SelectTaskPayload,
@@ -18,6 +23,9 @@ import type {
   ParticipantJoinedResponse,
   ParticipantLeftResponse,
   ParticipantRoleChangedResponse,
+  ParticipantNameChangedResponse,
+  CardSetChangedResponse,
+  AnonymousVotesChangedResponse,
   TaskCreatedResponse,
   TaskDeletedResponse,
   TaskSelectedResponse,
@@ -105,6 +113,50 @@ class SocketService {
 
   offParticipantRoleChanged(callback: (response: ParticipantRoleChangedResponse) => void): void {
     this.socket?.off('participant-role-changed', callback);
+  }
+
+  changeParticipantName(payload: ChangeParticipantNamePayload): void {
+    this.socket?.emit('change-participant-name', payload);
+  }
+
+  changeOwnName(payload: ChangeOwnNamePayload): void {
+    this.socket?.emit('change-own-name', payload);
+  }
+
+  changeCardSet(payload: ChangeCardSetPayload): void {
+    this.socket?.emit('change-card-set', payload);
+  }
+
+  onCardSetChanged(callback: (response: CardSetChangedResponse) => void): void {
+    this.socket?.on('card-set-changed', callback);
+  }
+
+  offCardSetChanged(callback: (response: CardSetChangedResponse) => void): void {
+    this.socket?.off('card-set-changed', callback);
+  }
+
+  changeAnonymousVotes(payload: ChangeAnonymousVotesPayload): void {
+    this.socket?.emit('change-anonymous-votes', payload);
+  }
+
+  onAnonymousVotesChanged(callback: (response: AnonymousVotesChangedResponse) => void): void {
+    this.socket?.on('anonymous-votes-changed', callback);
+  }
+
+  offAnonymousVotesChanged(callback: (response: AnonymousVotesChangedResponse) => void): void {
+    this.socket?.off('anonymous-votes-changed', callback);
+  }
+
+  transferManagerRole(payload: TransferManagerRolePayload): void {
+    this.socket?.emit('transfer-manager-role', payload);
+  }
+
+  onParticipantNameChanged(callback: (response: ParticipantNameChangedResponse) => void): void {
+    this.socket?.on('participant-name-changed', callback);
+  }
+
+  offParticipantNameChanged(callback: (response: ParticipantNameChangedResponse) => void): void {
+    this.socket?.off('participant-name-changed', callback);
   }
 
   onKicked(callback: (response: { message: string }) => void): void {

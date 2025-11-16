@@ -10,7 +10,7 @@ import { cn } from '@/lib/utils';
 interface TaskListProps {
     tasks: Task[];
     currentTaskId: string | null;
-    isCreator: boolean;
+    isManager: boolean;
     onSelectTask: (taskId: string) => void;
     onDeleteTask: (taskId: string) => void;
     onAddTask: () => void;
@@ -19,7 +19,7 @@ interface TaskListProps {
 export default function TaskList({
     tasks,
     currentTaskId,
-    isCreator,
+    isManager,
     onSelectTask,
     onDeleteTask,
     onAddTask,
@@ -30,7 +30,7 @@ export default function TaskList({
         <Card>
             <CardHeader className="flex items-center justify-between">
                 <CardTitle className="text-xl font-bold text-foreground">{t('taskList.tasksToEstimate')}</CardTitle>
-                {isCreator && (
+                {isManager && (
                     <Button onClick={onAddTask}>
                         <Plus className="w-4 h-4 mr-1.5" />
                         {t('common.add')}
@@ -52,7 +52,7 @@ export default function TaskList({
                             <TableRow>
                                 <TableHead>{t('task.title')}</TableHead>
                                 <TableHead className="w-[100px]">{t('taskList.estimate')}</TableHead>
-                                {isCreator && <TableHead className="w-[80px] text-right">{t('taskList.actions')}</TableHead>}
+                                {isManager && <TableHead className="w-[80px] text-right">{t('taskList.actions')}</TableHead>}
                             </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -89,7 +89,7 @@ export default function TaskList({
                                                 </Badge>
                                             )}
                                         </TableCell>
-                                        {isCreator && (
+                                        {isManager && (
                                             <TableCell className="text-right">
                                                 <Button
                                                     variant="ghost"

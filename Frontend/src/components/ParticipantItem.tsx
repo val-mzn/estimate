@@ -1,6 +1,8 @@
+import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { Participant } from '../types';
 import { getNameColor } from '../utils/roomUtils';
+import { useRoomStore } from '../stores/roomStore';
 import { Badge } from './ui/badge';
 import { Button } from './ui/button';
 import { TableCell, TableRow } from './ui/table';
@@ -12,27 +14,74 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from './ui/dropdown-menu';
-import { MoreVertical, UserMinus, UserCheck, UserX } from 'lucide-react';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from './ui/dialog';
+import { Input } from './ui/input';
+import { Label } from './ui/label';
+import { MoreVertical, UserMinus, UserCheck, UserX, UserPen, Crown } from 'lucide-react';
+import { socketService } from '../services/socketService';
 
 interface ParticipantItemProps {
     participant: Participant;
-    isCreator?: boolean;
+    isManager?: boolean;
     roomCode?: string;
     onRemove?: (participantId: string) => void;
     onChangeRole?: (participantId: string, role: 'participant' | 'spectator') => void;
 }
 
-export default function ParticipantItem({ participant, isCreator, roomCode, onRemove, onChangeRole }: ParticipantItemProps) {
+export default function ParticipantItem({ participant, isManager, roomCode, onRemove, onChangeRole }: ParticipantItemProps) {
     const { t } = useTranslation();
+    const { currentUser } = useRoomStore();
+    const [isRenameDialogOpen, setIsRenameDialogOpen] = useState(false);
+    const [newName, setNewName] = useState(participant.name);
     const badgeColor = getNameColor(participant.name);
-    const participantIsCreator = participant.role === 'creator';
+    const participantIsManager = participant.role === 'manager';
     const participationMode = participant.participationMode;
-    const canManage = isCreator && !participantIsCreator && (onRemove || onChangeRole);
+    const isCurrentUser = currentUser?.id === participant.id;
+    const canManage = isManager && !participantIsManager && (onRemove || onChangeRole || roomCode);
+    const canTransferManager = isManager && !isCurrentUser && !participantIsManager && roomCode;
     const currentRole = participant.role;
 
+    const handleRename = () => {
+        if (roomCode && newName.trim() && newName.trim() !== participant.name) {
+            socketService.changeParticipantName({
+                roomCode,
+                participantId: participant.id,
+                name: newName.trim(),
+            });
+            setIsRenameDialogOpen(false);
+        }
+    };
+
+    const handleOpenRenameDialog = () => {
+        setNewName(participant.name);
+        setIsRenameDialogOpen(true);
+    };
+
+    const handleTransferManagerRole = () => {
+        if (roomCode) {
+            socketService.transferManagerRole({
+                roomCode,
+                participantId: participant.id,
+            });
+        }
+    };
+
+    useEffect(() => {
+        if (!isRenameDialogOpen) {
+            setNewName(participant.name);
+        }
+    }, [participant.name, isRenameDialogOpen]);
+
     const getRoleBadge = () => {
-        if (participantIsCreator) {
-            return <Badge>{t('participants.creator')}</Badge>;
+        if (participantIsManager) {
+            return <Badge>{t('participants.manager')}</Badge>;
         }
         if (participant.role === 'participant') {
             return <Badge>{t('role.participant')}</Badge>;
@@ -44,10 +93,10 @@ export default function ParticipantItem({ participant, isCreator, roomCode, onRe
     };
 
     const getParticipationBadge = () => {
-        if (participantIsCreator && participationMode === 'participant') {
+        if (participantIsManager && participationMode === 'participant') {
             return <Badge>{t('role.participant')}</Badge>;
         }
-        if (participantIsCreator && participationMode === 'spectator') {
+        if (participantIsManager && participationMode === 'spectator') {
             return <Badge>{t('role.spectator')}</Badge>;
         }
         return null;
@@ -73,9 +122,9 @@ export default function ParticipantItem({ participant, isCreator, roomCode, onRe
                     {getParticipationBadge()}
                 </div>
             </TableCell>
-            {isCreator && (
+            {isManager && (
                 <TableCell className="text-right">
-                    {canManage && (
+                    {(canManage || canTransferManager) && (
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                                 <Button
@@ -87,8 +136,26 @@ export default function ParticipantItem({ participant, isCreator, roomCode, onRe
                                 </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
-                                {onChangeRole && (
+                                {canTransferManager && (
+                                    <DropdownMenuItem
+                                        onClick={handleTransferManagerRole}
+                                    >
+                                        <Crown className="w-4 h-4 mr-2" />
+                                        {t('participants.transferManagerRole')}
+                                    </DropdownMenuItem>
+                                )}
+                                {canTransferManager && canManage && <DropdownMenuSeparator />}
+                                {roomCode && canManage && (
+                                    <DropdownMenuItem
+                                        onClick={handleOpenRenameDialog}
+                                    >
+                                        <UserPen className="w-4 h-4 mr-2" />
+                                        {t('participants.rename')}
+                                    </DropdownMenuItem>
+                                )}
+                                {onChangeRole && canManage && (
                                     <>
+                                        {roomCode && <DropdownMenuSeparator />}
                                         {currentRole !== 'participant' && (
                                             <DropdownMenuItem
                                                 onClick={() => onChangeRole(participant.id, 'participant')}
@@ -107,8 +174,8 @@ export default function ParticipantItem({ participant, isCreator, roomCode, onRe
                                         )}
                                     </>
                                 )}
-                                {onChangeRole && onRemove && <DropdownMenuSeparator />}
-                                {onRemove && (
+                                {onChangeRole && onRemove && canManage && <DropdownMenuSeparator />}
+                                {onRemove && canManage && (
                                     <DropdownMenuItem
                                         onClick={() => onRemove(participant.id)}
                                         variant="destructive"
@@ -122,6 +189,47 @@ export default function ParticipantItem({ participant, isCreator, roomCode, onRe
                     )}
                 </TableCell>
             )}
+            <Dialog open={isRenameDialogOpen} onOpenChange={setIsRenameDialogOpen}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>{t('participants.renameTitle')}</DialogTitle>
+                        <DialogDescription>
+                            {t('participants.renameDescription', { name: participant.name })}
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4 py-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="newName">{t('participants.newName')}</Label>
+                            <Input
+                                id="newName"
+                                value={newName}
+                                onChange={(e) => setNewName(e.target.value)}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter') {
+                                        handleRename();
+                                    }
+                                }}
+                                placeholder={t('participants.newNamePlaceholder')}
+                                autoFocus
+                            />
+                        </div>
+                    </div>
+                    <DialogFooter>
+                        <Button
+                            variant="outline"
+                            onClick={() => setIsRenameDialogOpen(false)}
+                        >
+                            {t('common.cancel')}
+                        </Button>
+                        <Button
+                            onClick={handleRename}
+                            disabled={!newName.trim() || newName.trim() === participant.name}
+                        >
+                            {t('common.validate')}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </TableRow>
     );
 }

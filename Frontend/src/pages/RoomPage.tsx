@@ -62,9 +62,9 @@ export default function RoomPage() {
 
     useRoomNavigation(roomCode, room, isConnected);
 
-    const isCreator = currentUser?.role === 'creator';
-    const creatorCanParticipate = isCreator && currentUser?.participationMode === 'participant';
-    const isParticipant = currentUser?.role === 'participant' || creatorCanParticipate;
+    const isManager = currentUser?.role === 'manager';
+    const managerCanParticipate = isManager && currentUser?.participationMode === 'participant';
+    const isParticipant = currentUser?.role === 'participant' || managerCanParticipate;
     const currentTask = room?.tasks.find((t) => t.id === room.currentTaskId) as Task | undefined;
 
     const {
@@ -88,7 +88,7 @@ export default function RoomPage() {
     } = useTaskHandlers({
         room,
         roomCode,
-        isCreator,
+        isManager,
         isParticipant,
         createTask,
         deleteTask,
@@ -108,13 +108,13 @@ export default function RoomPage() {
     } = useTaskSelection({
         room,
         roomCode,
-        isCreator,
+        isManager,
         selectTask,
         setFinalEstimate,
     });
 
     useAutoFinalEstimate({
-        isCreator,
+        isManager,
         room,
         currentTask,
         roomCode,
@@ -134,7 +134,7 @@ export default function RoomPage() {
         if (!room || !currentUser) return;
         updateTaskDetails({
             currentTask: currentTask || null,
-            isCreator,
+            isManager,
             isParticipant,
             currentUserEstimate,
             numericCardSet,
@@ -146,7 +146,7 @@ export default function RoomPage() {
         });
     }, [
         currentTask,
-        isCreator,
+        isManager,
         isParticipant,
         currentUserEstimate,
         numericCardSet,
@@ -185,10 +185,28 @@ export default function RoomPage() {
                 <RoomHeader
                     roomName={room.name}
                     roomCode={roomCode!}
-                    isCreator={isCreator}
+                    isManager={isManager}
                     isRevealed={room.isRevealed}
                     hasCurrentTask={!!room.currentTaskId}
+                    currentUserName={currentUser.name}
+                    currentCardSet={room.cardSet}
+                    anonymousVotes={room.anonymousVotes}
                     onLeave={handleLeave}
+                    onChangeName={(name) => {
+                        if (roomCode) {
+                            socketService.changeOwnName({ roomCode, name });
+                        }
+                    }}
+                    onChangeCardSet={(cardSet) => {
+                        if (roomCode) {
+                            socketService.changeCardSet({ roomCode, cardSet });
+                        }
+                    }}
+                    onChangeAnonymousVotes={(anonymousVotes) => {
+                        if (roomCode) {
+                            socketService.changeAnonymousVotes({ roomCode, anonymousVotes });
+                        }
+                    }}
                 />
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
@@ -196,7 +214,7 @@ export default function RoomPage() {
                         <TaskList
                             tasks={room.tasks}
                             currentTaskId={room.currentTaskId}
-                            isCreator={isCreator}
+                            isManager={isManager}
                             onSelectTask={handleSelectTask}
                             onDeleteTask={handleDeleteTask}
                             onAddTask={() => setShowAddTaskModal(true)}
@@ -204,7 +222,7 @@ export default function RoomPage() {
 
                         <ParticipantsList
                             participants={room.participants}
-                            isCreator={isCreator}
+                            isManager={isManager}
                             roomCode={roomCode}
                             onRemoveParticipant={roomCode ? (participantId) => {
                                 socketService.removeParticipant({ roomCode, participantId });

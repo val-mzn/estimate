@@ -29,8 +29,8 @@ export function registerTaskHandlers(io: Server, socket: Socket) {
       const participant = Array.from(room.participants.values())
         .find(p => p.socketId === socket.id);
       
-      if (!participant || participant.role !== 'creator') {
-        const errorResponse: ErrorResponse = { message: 'Seul le créateur peut créer des fiches' };
+      if (!participant || participant.role !== 'manager') {
+        const errorResponse: ErrorResponse = { message: 'Seul le manager peut créer des fiches' };
         socket.emit('error', errorResponse);
         return;
       }
@@ -67,8 +67,8 @@ export function registerTaskHandlers(io: Server, socket: Socket) {
       const participant = Array.from(room.participants.values())
         .find(p => p.socketId === socket.id);
       
-      if (!participant || participant.role !== 'creator') {
-        const errorResponse: ErrorResponse = { message: 'Seul le créateur peut supprimer des fiches' };
+      if (!participant || participant.role !== 'manager') {
+        const errorResponse: ErrorResponse = { message: 'Seul le manager peut supprimer des fiches' };
         socket.emit('error', errorResponse);
         return;
       }
@@ -118,8 +118,8 @@ export function registerTaskHandlers(io: Server, socket: Socket) {
       const participant = Array.from(room.participants.values())
         .find(p => p.socketId === socket.id);
       
-      if (!participant || participant.role !== 'creator') {
-        const errorResponse: ErrorResponse = { message: 'Seul le créateur peut sélectionner/désélectionner des fiches' };
+      if (!participant || participant.role !== 'manager') {
+        const errorResponse: ErrorResponse = { message: 'Seul le manager peut sélectionner/désélectionner des fiches' };
         socket.emit('error', errorResponse);
         return;
       }
