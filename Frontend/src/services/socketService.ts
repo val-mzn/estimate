@@ -42,7 +42,7 @@ class SocketService {
   private readonly serverUrl: string;
 
   constructor() {
-    this.serverUrl = import.meta.env.VITE_SERVER_URL || 'http://192.168.1.59:3001';
+    this.serverUrl = import.meta.env.VITE_API_URL || 'http://localhost';
   }
 
   connect(): Socket {
