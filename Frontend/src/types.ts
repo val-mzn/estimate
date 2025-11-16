@@ -74,6 +74,10 @@ export interface RevealEstimatesPayload {
   roomCode: string;
 }
 
+export interface HideEstimatesPayload {
+  roomCode: string;
+}
+
 export interface ResetEstimatesPayload {
   roomCode: string;
 }
@@ -153,6 +157,10 @@ export interface EstimateUpdatedResponse {
 export interface EstimatesRevealedResponse {
   participants: Participant[];
   average: number | null;
+}
+
+export interface EstimatesHiddenResponse {
+  participants: Participant[];
 }
 
 export interface EstimatesResetResponse {

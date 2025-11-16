@@ -1,8 +1,10 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useRoomStore } from '../stores/roomStore';
 import { useTaskDetailsStore } from '../stores/taskDetailsStore';
 import { useVotingTimer } from '../hooks/useVotingTimer';
 import EstimateResultsChart from './EstimateResultsChart';
+import EstimateMetrics from './EstimateMetrics';
 import VotingSection from './VotingSection';
 import VoteProgress from './VoteProgress';
 import FinalEstimate from './FinalEstimate';
@@ -18,6 +20,7 @@ interface TaskDetailsProps {
 }
 
 export default function TaskDetails({ cardSet }: TaskDetailsProps) {
+    const { t } = useTranslation();
     const { room } = useRoomStore();
     const [showWarningModal, setShowWarningModal] = useState(false);
     const {
@@ -34,7 +37,7 @@ export default function TaskDetails({ cardSet }: TaskDetailsProps) {
         onEstimate,
         onFinalEstimateChange,
         onReveal,
-        findClosestCardValue,
+        onHide,
         getPreviousCardValue,
         getNextCardValue,
     } = useTaskDetailsStore();
@@ -84,7 +87,7 @@ export default function TaskDetails({ cardSet }: TaskDetailsProps) {
                     <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-4">
                         <div className="flex-1">
                             <h2 className="text-2xl lg:text-3xl font-bold text-foreground">
-                                Estimation de la fiche : {currentTask.title}
+                                {isRevealedState ? t('taskDetails.resultForTask', { title: currentTask.title }) : t('taskDetails.estimateForTask', { title: currentTask.title })}
                             </h2>
                         </div>
                         <VotingTimer formattedTime={formattedTime} isRunning={isRunning} />
@@ -96,17 +99,24 @@ export default function TaskDetails({ cardSet }: TaskDetailsProps) {
                     {hasNoNumeric ? (
                         <Alert variant="destructive">
                             <AlertDescription className="text-center">
-                                <p className="text-lg font-semibold mb-1">Aucune estimation numérique disponible</p>
-                                <p className="text-sm">Toutes les estimations sont des emojis, des symboles</p>
+                                <p className="text-lg font-semibold mb-1">{t('taskDetails.noNumericEstimates')}</p>
+                                <p className="text-sm">{t('taskDetails.allEstimatesAreSymbols')}</p>
                             </AlertDescription>
                         </Alert>
                     ) : (
-                        <EstimateResultsChart
-                            estimates={estimatesForCurrentTask}
-                            median={medianEstimate ?? 0}
-                            cardSet={cardSet}
-                            participants={room.participants}
-                        />
+                        <>
+                            <EstimateResultsChart
+                                estimates={estimatesForCurrentTask}
+                                median={medianEstimate ?? 0}
+                                cardSet={cardSet}
+                                participants={room.participants}
+                            />
+                            <EstimateMetrics
+                                participants={room.participants}
+                                averageEstimate={averageEstimate}
+                                medianEstimate={medianEstimate}
+                            />
+                        </>
                     )}
                     <FinalEstimate
                         value={currentTask.finalEstimate}
@@ -118,6 +128,18 @@ export default function TaskDetails({ cardSet }: TaskDetailsProps) {
                         getPreviousCardValue={isCreator ? getPreviousCardValue : undefined}
                         getNextCardValue={isCreator ? getNextCardValue : undefined}
                     />
+                    {isCreator && onHide && (
+                        <div className="mt-6">
+                            <Button
+                                onClick={onHide}
+                                variant="outline"
+                                size="lg"
+                                className="w-full"
+                            >
+                                {t('voting.hideEstimates')}
+                            </Button>
+                        </div>
+                    )}
                 </>
             ) : (
                 <>
@@ -150,7 +172,7 @@ export default function TaskDetails({ cardSet }: TaskDetailsProps) {
                                         size="lg"
                                         className="w-full"
                                     >
-                                        Révéler les estimations
+                                        {t('voting.revealEstimates')}
                                     </Button>
                                 </div>
                             )}
@@ -161,8 +183,8 @@ export default function TaskDetails({ cardSet }: TaskDetailsProps) {
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                                     </svg>
                                 </div>
-                                <p className="text-foreground font-medium">Vous êtes spectateur</p>
-                                <p className="text-sm text-muted-foreground mt-1">Vous pouvez observer les estimations</p>
+                                <p className="text-foreground font-medium">{t('taskDetails.youAreSpectator')}</p>
+                                <p className="text-sm text-muted-foreground mt-1">{t('taskDetails.canObserveEstimates')}</p>
                             </div>
                         </>
                     )}
@@ -173,10 +195,10 @@ export default function TaskDetails({ cardSet }: TaskDetailsProps) {
                 isOpen={showWarningModal}
                 onClose={() => setShowWarningModal(false)}
                 onConfirm={handleConfirmReveal}
-                title="Révéler les estimations"
-                message={`Tous les participants n'ont pas encore terminé leur estimation (${votedParticipants}/${totalParticipants}). Voulez-vous vraiment révéler les estimations maintenant ?`}
-                confirmText="Révéler quand même"
-                cancelText="Annuler"
+                title={t('voting.revealEstimates')}
+                message={t('voting.notAllVoted', { voted: votedParticipants, total: totalParticipants })}
+                confirmText={t('voting.revealAnyway')}
+                cancelText={t('common.cancel')}
             />
             </CardContent>
         </Card>

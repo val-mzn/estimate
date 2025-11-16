@@ -26,8 +26,8 @@ export default function WarningModal({
     onConfirm,
     title,
     message,
-    confirmText = 'Confirmer',
-    cancelText = 'Annuler',
+    confirmText,
+    cancelText,
 }: WarningModalProps) {
     const handleConfirm = () => {
         onConfirm();

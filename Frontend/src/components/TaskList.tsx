@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import type { Task } from '../types';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
@@ -23,14 +24,16 @@ export default function TaskList({
     onDeleteTask,
     onAddTask,
 }: TaskListProps) {
+    const { t } = useTranslation();
+    
     return (
         <Card>
             <CardHeader className="flex items-center justify-between">
-                <CardTitle className="text-xl font-bold text-foreground">Fiches à estimer</CardTitle>
+                <CardTitle className="text-xl font-bold text-foreground">{t('taskList.tasksToEstimate')}</CardTitle>
                 {isCreator && (
                     <Button onClick={onAddTask}>
                         <Plus className="w-4 h-4 mr-1.5" />
-                        Ajouter
+                        {t('common.add')}
                     </Button>
                 )}
             </CardHeader>
@@ -40,16 +43,16 @@ export default function TaskList({
                         <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-muted mb-3">
                             <Plus className="w-6 h-6 text-muted-foreground" />
                         </div>
-                        <p className="text-muted-foreground font-medium">Aucune fiche</p>
-                        <p className="text-sm text-muted-foreground mt-1">Ajoutez une fiche pour commencer</p>
+                        <p className="text-muted-foreground font-medium">{t('taskList.noTasks')}</p>
+                        <p className="text-sm text-muted-foreground mt-1">{t('taskList.addTaskToStart')}</p>
                     </div>
                 ) : (
                     <Table>
                         <TableHeader>
                             <TableRow>
-                                <TableHead>Titre</TableHead>
-                                <TableHead className="w-[100px]">Estimation</TableHead>
-                                {isCreator && <TableHead className="w-[80px] text-right">Actions</TableHead>}
+                                <TableHead>{t('task.title')}</TableHead>
+                                <TableHead className="w-[100px]">{t('taskList.estimate')}</TableHead>
+                                {isCreator && <TableHead className="w-[80px] text-right">{t('taskList.actions')}</TableHead>}
                             </TableRow>
                         </TableHeader>
                         <TableBody>

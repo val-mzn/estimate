@@ -1,4 +1,5 @@
 import { CaretDownIcon, CaretUpIcon } from "@phosphor-icons/react";
+import { useTranslation } from 'react-i18next';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
@@ -23,13 +24,14 @@ export default function FinalEstimate({
     getPreviousCardValue,
     getNextCardValue,
 }: FinalEstimateProps) {
+    const { t } = useTranslation();
     const displayValue = value ?? (hasNoNumericEstimates ? '?' : medianEstimate);
     const currentValue = value ?? (hasNoNumericEstimates ? '?' : medianEstimate);
 
     return (
         <>
             <Label className="text-lg font-semibold mb-4 block">
-                Estimation finale
+                {t('room.finalEstimate')}
             </Label>
             <div className="flex items-center justify-center gap-3">
                 {!readOnly && !hasNoNumericEstimates && (

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Label } from './ui/label';
 import { Tabs, TabsList, TabsTrigger } from './ui/tabs';
 
@@ -7,9 +8,11 @@ interface RoleSelectorProps {
 }
 
 export default function RoleSelector({ role, onRoleChange }: RoleSelectorProps) {
+    const { t } = useTranslation();
+    
     return (
         <div className="space-y-2">
-            <Label>Rôle</Label>
+            <Label>{t('role.label')}</Label>
             <Tabs value={role} onValueChange={(value) => {
                 if (value === 'participant' || value === 'spectator') {
                     onRoleChange(value);
@@ -17,10 +20,10 @@ export default function RoleSelector({ role, onRoleChange }: RoleSelectorProps) 
             }} className="w-full">
                 <TabsList className="w-full">
                     <TabsTrigger value="participant" className="flex-1">
-                        Participant
+                        {t('role.participant')}
                     </TabsTrigger>
                     <TabsTrigger value="spectator" className="flex-1">
-                        Spectateur
+                        {t('role.spectator')}
                     </TabsTrigger>
                 </TabsList>
             </Tabs>

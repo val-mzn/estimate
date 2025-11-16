@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Progress } from "@/components/ui/progress";
 import type { Participant } from '../types';
 import { isActiveParticipant } from '../utils/estimateUtils';
@@ -18,6 +19,7 @@ export default function VoteProgress({
     isCreator = false,
     currentTaskId = null
 }: VoteProgressProps) {
+    const { t } = useTranslation();
     const voteProgress = totalParticipants > 0 ? (votedParticipants / totalParticipants) * 100 : 0;
 
     const notVotedParticipants = useMemo(() => {
@@ -33,7 +35,7 @@ export default function VoteProgress({
         <div className="mb-4">
             <div className="flex items-center justify-between mb-2">
                 <span className="text-sm text-muted-foreground">
-                    Votes
+                    {t('voting.votes')}
                 </span>
                 <span className="text-sm text-muted-foreground">
                     {votedParticipants} / {totalParticipants}
@@ -43,7 +45,7 @@ export default function VoteProgress({
             {isCreator && notVotedParticipants.length > 0 && (
                 <div className="mt-2">
                     <p className="text-xs text-muted-foreground mb-1">
-                        En attente :
+                        {t('voting.waiting')} :
                     </p>
                     <div className="flex flex-wrap gap-1">
                         {notVotedParticipants.map((participant) => (

@@ -1,0 +1,132 @@
+{
+  "common": {
+    "cancel": "Cancel",
+    "add": "Add",
+    "create": "Create",
+    "join": "Join",
+    "back": "Back",
+    "loading": "Loading...",
+    "error": "Error",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "close": "Close",
+    "confirm": "Confirm"
+  },
+  "home": {
+    "title": "EstiMate",
+    "description": "Application for estimating effort points during poker planning.",
+    "createRoom": "Create a room",
+    "joinRoom": "Join a room"
+  },
+  "createRoom": {
+    "title": "Create a room",
+    "description": "Configure your estimation session",
+    "roomName": "Room name",
+    "roomNamePlaceholder": "Ex: Sprint Planning Q1",
+    "userName": "Your name",
+    "userNamePlaceholder": "Ex: John Doe",
+    "cardSet": "Card set",
+    "cardSetPlaceholder": "0, 1, 2, 3, 5, 8, 13, 21, 30, 50, 100",
+    "creating": "Creating...",
+    "createButton": "Create room",
+    "fillAllFields": "Please fill in all fields"
+  },
+  "joinRoom": {
+    "title": "Join a room",
+    "description": "Enter the room code to participate",
+    "roomCode": "Room code",
+    "roomCodePlaceholder": "Ex: ABC123",
+    "userName": "Your name",
+    "userNamePlaceholder": "Ex: John Doe",
+    "joining": "Joining...",
+    "joinButton": "Join room",
+    "fillAllFields": "Please fill in all fields"
+  },
+  "task": {
+    "add": "Add a task",
+    "taskNumber": "Task number",
+    "taskNumberPlaceholder": "Ex: Task #1145",
+    "title": "Title",
+    "description": "Description",
+    "noTasks": "No tasks",
+    "addFirstTask": "Add your first task"
+  },
+  "room": {
+    "title": "Room",
+    "participants": "Participants",
+    "tasks": "Tasks",
+    "voting": "Voting",
+    "results": "Results",
+    "finalEstimate": "Final estimate"
+  },
+  "role": {
+    "label": "Role",
+    "participant": "Participant",
+    "spectator": "Spectator"
+  },
+  "voting": {
+    "vote": "Vote",
+    "votes": "Votes",
+    "waiting": "Waiting",
+    "allVoted": "All voted",
+    "timer": "Time remaining",
+    "yourEstimate": "Your estimate",
+    "selectValue": "Select a value below",
+    "revealEstimates": "Reveal estimates",
+    "hideEstimates": "Hide estimates",
+    "revealAnyway": "Reveal anyway",
+    "notAllVoted": "Not all participants have finished their estimate ({{voted}}/{{total}}). Do you really want to reveal the estimates now?"
+  },
+  "taskDetails": {
+    "estimateForTask": "Task estimate: {{title}}",
+    "resultForTask": "Task results: {{title}}",
+    "noNumericEstimates": "No numeric estimates available",
+    "allEstimatesAreSymbols": "All estimates are emojis, symbols",
+    "youAreSpectator": "You are a spectator",
+    "canObserveEstimates": "You can observe the estimates"
+  },
+  "taskList": {
+    "tasksToEstimate": "Tasks to estimate",
+    "noTasks": "No tasks",
+    "addTaskToStart": "Add a task to get started",
+    "noTaskSelected": "No task selected",
+    "selectTaskToStart": "Select a task to start estimating",
+    "estimate": "Estimate",
+    "actions": "Actions",
+    "removeParticipant": "Remove this participant"
+  },
+  "participants": {
+    "title": "Participants",
+    "creator": "Creator"
+  },
+  "roomHeader": {
+    "code": "Code: {{code}}",
+    "copyLink": "Copy link",
+    "copied": "Copied!",
+    "leave": "Leave"
+  },
+  "chart": {
+    "votes": "Votes",
+    "numericValue": "Numeric value",
+    "nonNumericValue": "Non-numeric value",
+    "median": "Median"
+  },
+  "metrics": {
+    "voteCount": "Vote count",
+    "average": "Average",
+    "median": "Median",
+    "abstention": "Abstention"
+  },
+  "theme": {
+    "toggle": "Toggle theme",
+    "light": "Light",
+    "dark": "Dark"
+  },
+  "language": {
+    "toggle": "Change language",
+    "french": "French",
+    "english": "English"
+  }
+}
+

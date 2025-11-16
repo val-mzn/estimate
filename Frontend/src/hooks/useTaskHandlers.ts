@@ -10,6 +10,7 @@ interface UseTaskHandlersParams {
   deleteTask: (payload: { roomCode: string; taskId: string }) => void;
   estimateTask: (payload: { roomCode: string; taskId: string; estimate: string }) => void;
   revealEstimates: (payload: { roomCode: string }) => void;
+  hideEstimates: (payload: { roomCode: string }) => void;
   resetEstimates: (payload: { roomCode: string }) => void;
   setFinalEstimate: (payload: { roomCode: string; taskId: string; finalEstimate: number | '?' | null }) => void;
   setShowAddTaskModal: (show: boolean) => void;
@@ -24,6 +25,7 @@ export function useTaskHandlers({
   deleteTask,
   estimateTask,
   revealEstimates,
+  hideEstimates,
   resetEstimates,
   setFinalEstimate,
   setShowAddTaskModal,
@@ -51,6 +53,11 @@ export function useTaskHandlers({
     revealEstimates({ roomCode });
   }, [isCreator, roomCode, revealEstimates]);
 
+  const handleHide = useCallback(() => {
+    if (!isCreator || !roomCode) return;
+    hideEstimates({ roomCode });
+  }, [isCreator, roomCode, hideEstimates]);
+
   const handleReset = useCallback(() => {
     if (!isCreator || !roomCode) return;
     resetEstimates({ roomCode });
@@ -74,6 +81,7 @@ export function useTaskHandlers({
     handleEstimate,
     handleFinalEstimateChange,
     handleReveal,
+    handleHide,
     handleReset,
     handleAddTask,
     handleDeleteTask,

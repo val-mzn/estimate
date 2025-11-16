@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
+import { useTranslation } from 'react-i18next';
 import { useSocket } from '../hooks/useSocket';
 import { useRoomStore } from '../stores/roomStore';
 import BackButton from '../components/BackButton';
@@ -13,6 +14,7 @@ import { Card, CardContent } from '../components/ui/card';
 const LAST_USER_NAME_KEY = 'estimate_last_user_name';
 
 export default function CreateRoomPage() {
+    const { t } = useTranslation();
     const navigate = useNavigate();
     const [roomName, setRoomName] = useState('');
     const [userName, setUserName] = useState('');
@@ -41,7 +43,7 @@ export default function CreateRoomPage() {
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (!roomName.trim() || !userName.trim()) {
-            setError('Veuillez remplir tous les champs');
+            setError(t('createRoom.fillAllFields'));
             return;
         }
         
@@ -72,37 +74,37 @@ export default function CreateRoomPage() {
                 <Card className="shadow-xl">
                     <CardContent className="p-8 space-y-6">
                         <BackButton />
-                        <PageHeader title="Créer une salle" description="Configurez votre session d'estimation" />
+                        <PageHeader title={t('createRoom.title')} description={t('createRoom.description')} />
 
                         {error && <ErrorAlert message={error} />}
 
                         <form onSubmit={handleSubmit} className="space-y-5">
                         <FormField
                             id="roomName"
-                            label="Nom de la salle"
+                            label={t('createRoom.roomName')}
                             value={roomName}
                             onChange={(e) => setRoomName(e.target.value)}
-                            placeholder="Ex: Sprint Planning Q1"
+                            placeholder={t('createRoom.roomNamePlaceholder')}
                             required
                             disabled={isLoading}
                         />
 
                         <FormField
                             id="userName"
-                            label="Votre nom"
+                            label={t('createRoom.userName')}
                             value={userName}
                             onChange={(e) => setUserName(e.target.value)}
-                            placeholder="Ex: Jean Dupont"
+                            placeholder={t('createRoom.userNamePlaceholder')}
                             required
                             disabled={isLoading}
                         />
 
                         <FormField
                             id="cardSet"
-                            label="Jeu de cartes"
+                            label={t('createRoom.cardSet')}
                             value={cardSet}
                             onChange={(e) => setCardSet(e.target.value)}
-                            placeholder="0, 1, 2, 3, 5, 8, 13, 21, 30, 50, 100"
+                            placeholder={t('createRoom.cardSetPlaceholder')}
                         />
 
                         <RoleSelector role={role} onRoleChange={setRole} />
@@ -113,7 +115,7 @@ export default function CreateRoomPage() {
                             className="w-full"
                             size="lg"
                         >
-                            {isLoading ? 'Création...' : 'Créer la salle'}
+                            {isLoading ? t('createRoom.creating') : t('createRoom.createButton')}
                         </Button>
                     </form>
                     </CardContent>

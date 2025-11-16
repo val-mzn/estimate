@@ -1,0 +1,132 @@
+{
+  "common": {
+    "cancel": "Annuler",
+    "add": "Ajouter",
+    "create": "Créer",
+    "join": "Rejoindre",
+    "back": "Retour",
+    "loading": "Chargement...",
+    "error": "Erreur",
+    "save": "Enregistrer",
+    "delete": "Supprimer",
+    "edit": "Modifier",
+    "close": "Fermer",
+    "confirm": "Confirmer"
+  },
+  "home": {
+    "title": "EstiMate",
+    "description": "Application pour estimer des points d'effort lors de poker planning.",
+    "createRoom": "Créer une salle",
+    "joinRoom": "Rejoindre une salle"
+  },
+  "createRoom": {
+    "title": "Créer une salle",
+    "description": "Configurez votre session d'estimation",
+    "roomName": "Nom de la salle",
+    "roomNamePlaceholder": "Ex: Sprint Planning Q1",
+    "userName": "Votre nom",
+    "userNamePlaceholder": "Ex: Jean Dupont",
+    "cardSet": "Jeu de cartes",
+    "cardSetPlaceholder": "0, 1, 2, 3, 5, 8, 13, 21, 30, 50, 100",
+    "creating": "Création...",
+    "createButton": "Créer la salle",
+    "fillAllFields": "Veuillez remplir tous les champs"
+  },
+  "joinRoom": {
+    "title": "Rejoindre une salle",
+    "description": "Entrez le code de la salle pour participer",
+    "roomCode": "Code de la salle",
+    "roomCodePlaceholder": "Ex: ABC123",
+    "userName": "Votre nom",
+    "userNamePlaceholder": "Ex: Jean Dupont",
+    "joining": "Connexion...",
+    "joinButton": "Rejoindre la salle",
+    "fillAllFields": "Veuillez remplir tous les champs"
+  },
+  "task": {
+    "add": "Ajouter une fiche",
+    "taskNumber": "Numéro de la fiche",
+    "taskNumberPlaceholder": "Ex: Fiche #1145",
+    "title": "Titre",
+    "description": "Description",
+    "noTasks": "Aucune fiche",
+    "addFirstTask": "Ajoutez votre première fiche"
+  },
+  "room": {
+    "title": "Salle",
+    "participants": "Participants",
+    "tasks": "Fiches",
+    "voting": "Vote",
+    "results": "Résultats",
+    "finalEstimate": "Estimation finale"
+  },
+  "role": {
+    "label": "Rôle",
+    "participant": "Participant",
+    "spectator": "Spectateur"
+  },
+  "voting": {
+    "vote": "Voter",
+    "votes": "Votes",
+    "waiting": "En attente",
+    "allVoted": "Tous ont voté",
+    "timer": "Temps restant",
+    "yourEstimate": "Votre estimation",
+    "selectValue": "Sélectionnez une valeur ci-dessous",
+    "revealEstimates": "Révéler les estimations",
+    "hideEstimates": "Masquer les estimations",
+    "revealAnyway": "Révéler quand même",
+    "notAllVoted": "Tous les participants n'ont pas encore terminé leur estimation ({{voted}}/{{total}}). Voulez-vous vraiment révéler les estimations maintenant ?"
+  },
+  "taskDetails": {
+    "estimateForTask": "Estimation de la fiche : {{title}}",
+    "resultForTask": "Résultats de la fiche : {{title}}",
+    "noNumericEstimates": "Aucune estimation numérique disponible",
+    "allEstimatesAreSymbols": "Toutes les estimations sont des emojis, des symboles",
+    "youAreSpectator": "Vous êtes spectateur",
+    "canObserveEstimates": "Vous pouvez observer les estimations"
+  },
+  "taskList": {
+    "tasksToEstimate": "Fiches à estimer",
+    "noTasks": "Aucune fiche",
+    "addTaskToStart": "Ajoutez une fiche pour commencer",
+    "noTaskSelected": "Aucune fiche sélectionnée",
+    "selectTaskToStart": "Sélectionnez une fiche pour commencer l'estimation",
+    "estimate": "Estimation",
+    "actions": "Actions",
+    "removeParticipant": "Retirer ce participant"
+  },
+  "participants": {
+    "title": "Participants",
+    "creator": "Créateur"
+  },
+  "roomHeader": {
+    "code": "Code: {{code}}",
+    "copyLink": "Copier le lien",
+    "copied": "Copié!",
+    "leave": "Quitter"
+  },
+  "chart": {
+    "votes": "Votes",
+    "numericValue": "Valeur numérique",
+    "nonNumericValue": "Valeur non numérique",
+    "median": "Médiane"
+  },
+  "metrics": {
+    "voteCount": "Nombre de votes",
+    "average": "Moyenne",
+    "median": "Médiane",
+    "abstention": "Abstention"
+  },
+  "theme": {
+    "toggle": "Changer le thème",
+    "light": "Clair",
+    "dark": "Sombre"
+  },
+  "language": {
+    "toggle": "Changer la langue",
+    "french": "Français",
+    "english": "Anglais"
+  }
+}
+

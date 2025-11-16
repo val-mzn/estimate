@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import type { Participant } from '../types';
 import ParticipantItem from './ParticipantItem';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
@@ -10,11 +11,13 @@ interface ParticipantsListProps {
 }
 
 export default function ParticipantsList({ participants, isCreator, onRemoveParticipant }: ParticipantsListProps) {
+    const { t } = useTranslation();
+    
     return (
         <Card>
             <CardHeader>
                 <CardTitle className="text-xl font-bold text-foreground">
-                    Participants
+                    {t('participants.title')}
                     <span className="ml-2 text-sm font-normal text-muted-foreground">
                         ({participants.length})
                     </span>

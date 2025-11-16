@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import VoteProgress from './VoteProgress';
 import EstimateCard from './EstimateCard';
 import { Button } from './ui/button';
@@ -30,6 +31,7 @@ export default function VotingSection({
     isRevealed = false,
     onReveal,
 }: VotingSectionProps) {
+    const { t } = useTranslation();
     const [showWarningModal, setShowWarningModal] = useState(false);
     const allVoted = votedParticipants === totalParticipants && totalParticipants > 0;
     const shouldShowButton = isCreator && !isRevealed && onReveal;
@@ -57,8 +59,8 @@ export default function VotingSection({
                 currentTaskId={currentTaskId}
             />
             <div className="mb-6">
-                <h3 className="text-xl font-semibold text-foreground mb-1">Votre estimation</h3>
-                <p className="text-sm text-muted-foreground">Sélectionnez une valeur ci-dessous</p>
+                <h3 className="text-xl font-semibold text-foreground mb-1">{t('voting.yourEstimate')}</h3>
+                <p className="text-sm text-muted-foreground">{t('voting.selectValue')}</p>
             </div>
             <div className="flex flex-wrap gap-3">
                 {cardSet.map((card) => (
@@ -78,7 +80,7 @@ export default function VotingSection({
                         size="lg"
                         className="w-full"
                     >
-                        Révéler les estimations
+                        {t('voting.revealEstimates')}
                     </Button>
                 </div>
             )}
@@ -87,10 +89,10 @@ export default function VotingSection({
                 isOpen={showWarningModal}
                 onClose={() => setShowWarningModal(false)}
                 onConfirm={handleConfirmReveal}
-                title="Révéler les estimations"
-                message={`Tous les participants n'ont pas encore terminé leur estimation (${votedParticipants}/${totalParticipants}). Voulez-vous vraiment révéler les estimations maintenant ?`}
-                confirmText="Révéler quand même"
-                cancelText="Annuler"
+                title={t('voting.revealEstimates')}
+                message={t('voting.notAllVoted', { voted: votedParticipants, total: totalParticipants })}
+                confirmText={t('voting.revealAnyway')}
+                cancelText={t('common.cancel')}
             />
         </div>
     );

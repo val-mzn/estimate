@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ReferenceLine, Cell } from 'recharts';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { getAllEstimatesFromParticipants } from '../utils/estimateUtils';
@@ -12,19 +13,21 @@ interface EstimateResultsChartProps {
     participants: Participant[];
 }
 
-const chartConfig = {
-    count: {
-        label: "Votes",
-    },
-    numeric: {
-        label: "Valeur numérique",
-    },
-    nonNumeric: {
-        label: "Valeur non numérique",
-    },
-} satisfies ChartConfig;
-
 export default function EstimateResultsChart({ median, cardSet, participants }: EstimateResultsChartProps) {
+    const { t } = useTranslation();
+    
+    const chartConfig = useMemo(() => ({
+        count: {
+            label: t('chart.votes'),
+        },
+        numeric: {
+            label: t('chart.numericValue'),
+        },
+        nonNumeric: {
+            label: t('chart.nonNumericValue'),
+        },
+    } satisfies ChartConfig), [t]);
+    
     const colors = useMemo(() => {
         if (typeof window === 'undefined') {
             return {
@@ -118,7 +121,7 @@ export default function EstimateResultsChart({ median, cardSet, participants }: 
                     strokeWidth={2}
                     strokeDasharray="6 4"
                     label={{
-                        value: 'Médiane',
+                        value: t('chart.median'),
                         position: 'top',
                         fontSize: 12,
                         fontWeight: 600

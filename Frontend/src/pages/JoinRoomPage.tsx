@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation, useSearchParams } from 'react-router';
+import { useTranslation } from 'react-i18next';
 import { useSocket } from '../hooks/useSocket';
 import { useRoomStore } from '../stores/roomStore';
 import BackButton from '../components/BackButton';
@@ -14,6 +15,7 @@ import { Card, CardContent } from '../components/ui/card';
 const LAST_USER_NAME_KEY = 'estimate_last_user_name';
 
 export default function JoinRoomPage() {
+    const { t } = useTranslation();
     const navigate = useNavigate();
     const location = useLocation();
     const [searchParams] = useSearchParams();
@@ -59,7 +61,7 @@ export default function JoinRoomPage() {
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (roomCode.length !== 5 || !userName.trim()) {
-            setError('Veuillez remplir tous les champs');
+            setError(t('joinRoom.fillAllFields'));
             return;
         }
         
@@ -89,17 +91,17 @@ export default function JoinRoomPage() {
                 <Card className="shadow-xl">
                     <CardContent className="p-8 space-y-6">
                         <BackButton />
-                        <PageHeader title="Rejoindre une salle" description="Entrez le code de la salle pour participer" />
+                        <PageHeader title={t('joinRoom.title')} description={t('joinRoom.description')} />
 
                         {error && <ErrorAlert message={error} />}
 
                         <form onSubmit={handleSubmit} className="space-y-5">
                         <RoomCodeField
                             id="roomCode"
-                            label="Code de la salle"
+                            label={t('joinRoom.roomCode')}
                             value={roomCode}
                             onChange={handleRoomCodeChange}
-                            placeholder="A1B2C"
+                            placeholder={t('joinRoom.roomCodePlaceholder')}
                             maxLength={5}
                             required
                             disabled={isLoading}
@@ -107,13 +109,13 @@ export default function JoinRoomPage() {
 
                         <FormField
                             id="userName"
-                            label="Votre nom"
+                            label={t('joinRoom.userName')}
                             value={userName}
                             onChange={(e) => {
                                 setUserName(e.target.value);
                                 setError(null);
                             }}
-                            placeholder="Ex: Jean Dupont"
+                            placeholder={t('joinRoom.userNamePlaceholder')}
                             required
                             disabled={isLoading}
                         />
@@ -126,7 +128,7 @@ export default function JoinRoomPage() {
                             className="w-full"
                             size="lg"
                         >
-                            {isLoading ? 'Connexion...' : 'Rejoindre la salle'}
+                            {isLoading ? t('joinRoom.joining') : t('joinRoom.joinButton')}
                         </Button>
                     </form>
                     </CardContent>

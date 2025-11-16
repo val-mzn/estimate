@@ -3,10 +3,12 @@ import { Server } from 'socket.io';
 import {
   EstimateTaskPayload,
   RevealEstimatesPayload,
+  HideEstimatesPayload,
   ResetEstimatesPayload,
   SetFinalEstimatePayload,
   EstimateUpdatedResponse,
   EstimatesRevealedResponse,
+  EstimatesHiddenResponse,
   EstimatesResetResponse,
   FinalEstimateUpdatedResponse,
   ErrorResponse
@@ -146,6 +148,48 @@ export function registerEstimateHandlers(io: Server, socket: Socket) {
       const errorResponse: ErrorResponse = { message: 'Erreur lors de la révélation des estimations' };
       socket.emit('error', errorResponse);
       logger.error('Error revealing estimates', { error, roomCode: payload.roomCode, socketId: socket.id });
+    }
+  });
+
+  socket.on('hide-estimates', (payload: HideEstimatesPayload) => {
+    try {
+      const { roomCode } = payload;
+      const room = rooms.get(roomCode);
+      
+      if (!room) {
+        const errorResponse: ErrorResponse = { message: 'Room introuvable' };
+        socket.emit('error', errorResponse);
+        return;
+      }
+      
+      const participant = Array.from(room.participants.values())
+        .find(p => p.socketId === socket.id);
+      
+      if (!participant || participant.role !== 'creator') {
+        const errorResponse: ErrorResponse = { message: 'Seul le créateur peut masquer les estimations' };
+        socket.emit('error', errorResponse);
+        return;
+      }
+      
+      room.isRevealed = false;
+      
+      const response: EstimatesHiddenResponse = {
+        participants: Array.from(room.participants.values()).map(p => ({
+          id: p.id,
+          name: p.name,
+          role: p.role,
+          currentEstimate: p.currentEstimate,
+          participationMode: p.participationMode
+        }))
+      };
+      
+      io.to(roomCode).emit('estimates-hidden', response);
+      
+      logger.info(`Estimates hidden in room ${roomCode}`, { roomCode });
+    } catch (error) {
+      const errorResponse: ErrorResponse = { message: 'Erreur lors du masquage des estimations' };
+      socket.emit('error', errorResponse);
+      logger.error('Error hiding estimates', { error, roomCode: payload.roomCode, socketId: socket.id });
     }
   });
 

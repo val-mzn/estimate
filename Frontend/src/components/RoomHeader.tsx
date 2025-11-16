@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from './ui/button';
 import { Card, CardAction, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from './ui/card';
 import { Check, Copy, LogOut } from 'lucide-react';
@@ -17,6 +18,7 @@ export default function RoomHeader({
     roomCode,
     onLeave,
 }: RoomHeaderProps) {
+    const { t } = useTranslation();
     const [copied, setCopied] = useState(false);
 
     const copyRoomLink = async () => {
@@ -26,7 +28,7 @@ export default function RoomHeader({
             setCopied(true);
             setTimeout(() => setCopied(false), 2000);
         } catch (err) {
-            console.error('Erreur lors de la copie:', err);
+            console.error('Error copying:', err);
         }
     };
 
@@ -38,7 +40,7 @@ export default function RoomHeader({
                         {roomName}
                     </p>
                     <p className="text-sm text-muted-foreground">
-                        Code: {roomCode}
+                        {t('roomHeader.code', { code: roomCode })}
                     </p>
                 </div>
                 <div className="flex items-center gap-2">
@@ -48,12 +50,12 @@ export default function RoomHeader({
                         {copied ? (
                             <>
                                 <Check className="w-4 h-4 mr-1.5" />
-                                <span>Copié!</span>
+                                <span>{t('roomHeader.copied')}</span>
                             </>
                         ) : (
                             <>
                                 <Copy className="w-4 h-4 mr-1.5" />
-                                Copier le lien
+                                {t('roomHeader.copyLink')}
                             </>
                         )}
                     </Button>
@@ -62,7 +64,7 @@ export default function RoomHeader({
                         variant="destructive"
                     >
                         <LogOut className="w-5 h-5 mr-2" />
-                        Quitter
+                        {t('roomHeader.leave')}
                     </Button>
                 </div>
             </CardContent>

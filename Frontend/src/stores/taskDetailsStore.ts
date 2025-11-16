@@ -23,12 +23,14 @@ interface TaskDetailsState {
   onEstimate: ((value: string) => void) | null;
   onFinalEstimateChange: ((value: number | '?' | null) => void) | null;
   onReveal: (() => void) | null;
+  onHide: (() => void) | null;
   
   // Setters
   setOnEstimate: (handler: (value: string) => void) => void;
   setOnFinalEstimateChange: (handler: (value: number | '?' | null) => void) => void;
   setOnReveal: (handler: () => void) => void;
-  updateTaskDetails: (details: Partial<Omit<TaskDetailsState, 'onEstimate' | 'onFinalEstimateChange' | 'onReveal' | 'setOnEstimate' | 'setOnFinalEstimateChange' | 'setOnReveal' | 'updateTaskDetails' | 'findClosestCardValue' | 'getPreviousCardValue' | 'getNextCardValue'>>) => void;
+  setOnHide: (handler: () => void) => void;
+  updateTaskDetails: (details: Partial<Omit<TaskDetailsState, 'onEstimate' | 'onFinalEstimateChange' | 'onReveal' | 'onHide' | 'setOnEstimate' | 'setOnFinalEstimateChange' | 'setOnReveal' | 'setOnHide' | 'updateTaskDetails' | 'findClosestCardValue' | 'getPreviousCardValue' | 'getNextCardValue'>>) => void;
 }
 
 export const useTaskDetailsStore = create<TaskDetailsState>((set, get) => {
@@ -81,9 +83,11 @@ export const useTaskDetailsStore = create<TaskDetailsState>((set, get) => {
     onEstimate: null,
     onFinalEstimateChange: null,
     onReveal: null,
+    onHide: null,
     setOnEstimate: (handler) => set({ onEstimate: handler }),
     setOnFinalEstimateChange: (handler) => set({ onFinalEstimateChange: handler }),
     setOnReveal: (handler) => set({ onReveal: handler }),
+    setOnHide: (handler) => set({ onHide: handler }),
     updateTaskDetails: (details) => set(details),
   };
 });

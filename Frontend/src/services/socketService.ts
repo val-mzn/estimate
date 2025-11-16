@@ -8,6 +8,7 @@ import type {
   SelectTaskPayload,
   EstimateTaskPayload,
   RevealEstimatesPayload,
+  HideEstimatesPayload,
   ResetEstimatesPayload,
   SetFinalEstimatePayload,
   RoomCreatedResponse,
@@ -19,6 +20,7 @@ import type {
   TaskSelectedResponse,
   EstimateUpdatedResponse,
   EstimatesRevealedResponse,
+  EstimatesHiddenResponse,
   EstimatesResetResponse,
   FinalEstimateUpdatedResponse,
   ErrorResponse,
@@ -158,6 +160,18 @@ class SocketService {
 
   offEstimatesRevealed(callback: (response: EstimatesRevealedResponse) => void): void {
     this.socket?.off('estimates-revealed', callback);
+  }
+
+  hideEstimates(payload: HideEstimatesPayload): void {
+    this.socket?.emit('hide-estimates', payload);
+  }
+
+  onEstimatesHidden(callback: (response: EstimatesHiddenResponse) => void): void {
+    this.socket?.on('estimates-hidden', callback);
+  }
+
+  offEstimatesHidden(callback: (response: EstimatesHiddenResponse) => void): void {
+    this.socket?.off('estimates-hidden', callback);
   }
 
   resetEstimates(payload: ResetEstimatesPayload): void {

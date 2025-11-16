@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
     Dialog,
     DialogContent,
@@ -22,6 +23,7 @@ interface AddTaskModalProps {
 }
 
 export default function AddTaskModal({ isOpen, onClose, onAdd }: AddTaskModalProps) {
+    const { t } = useTranslation();
     const [title, setTitle] = useState('');
 
     const handleSubmit = () => {
@@ -41,17 +43,17 @@ export default function AddTaskModal({ isOpen, onClose, onAdd }: AddTaskModalPro
         <Dialog open={isOpen} onOpenChange={handleClose}>
             <DialogContent>
                 <DialogHeader>
-                    <DialogTitle>Ajouter une fiche</DialogTitle>
+                    <DialogTitle>{t('task.add')}</DialogTitle>
                 </DialogHeader>
                 <div className="space-y-4">
                     <div className="space-y-2">
-                        <Label htmlFor="task-title">Numéro de la fiche</Label>
+                        <Label htmlFor="task-title">{t('task.taskNumber')}</Label>
                         <Input
                             id="task-title"
                             type="text"
                             value={title}
                             onChange={(e) => setTitle(e.target.value)}
-                            placeholder="Ex: Fiche #1145"
+                            placeholder={t('task.taskNumberPlaceholder')}
                             autoFocus
                             onKeyDown={(e) => {
                                 if (e.key === 'Enter' && title.trim()) {
@@ -63,10 +65,10 @@ export default function AddTaskModal({ isOpen, onClose, onAdd }: AddTaskModalPro
                 </div>
                 <DialogFooter>
                     <Button variant="outline" onClick={handleClose}>
-                        Annuler
+                        {t('common.cancel')}
                     </Button>
                     <Button onClick={handleSubmit} disabled={!title.trim()}>
-                        Ajouter
+                        {t('common.add')}
                     </Button>
                 </DialogFooter>
             </DialogContent>

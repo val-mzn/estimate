@@ -11,6 +11,7 @@ import type {
   TaskSelectedResponse,
   EstimateUpdatedResponse,
   EstimatesRevealedResponse,
+  EstimatesHiddenResponse,
   EstimatesResetResponse,
   FinalEstimateUpdatedResponse,
   ErrorResponse,
@@ -26,6 +27,7 @@ interface UseSocketCallbacks {
   onTaskSelected?: (response: TaskSelectedResponse) => void;
   onEstimateUpdated?: (response: EstimateUpdatedResponse) => void;
   onEstimatesRevealed?: (response: EstimatesRevealedResponse) => void;
+  onEstimatesHidden?: (response: EstimatesHiddenResponse) => void;
   onEstimatesReset?: (response: EstimatesResetResponse) => void;
   onError?: (response: ErrorResponse) => void;
   onConnect?: () => void;
@@ -107,6 +109,14 @@ export function useSocket(callbacks: UseSocketCallbacks = {}) {
       callbacksRef.current.onEstimatesRevealed?.(response);
     };
 
+    const handleEstimatesHidden = (response: EstimatesHiddenResponse) => {
+      response.participants.forEach((participant) => {
+        updateParticipantEstimate(participant.id, participant.currentEstimate);
+      });
+      setRevealed(false);
+      callbacksRef.current.onEstimatesHidden?.(response);
+    };
+
     const handleEstimatesReset = (response: EstimatesResetResponse) => {
       resetEstimatesStore();
       callbacksRef.current.onEstimatesReset?.(response);
@@ -150,6 +160,7 @@ export function useSocket(callbacks: UseSocketCallbacks = {}) {
     socketService.onTaskSelected(handleTaskSelected);
     socketService.onEstimateUpdated(handleEstimateUpdated);
     socketService.onEstimatesRevealed(handleEstimatesRevealed);
+    socketService.onEstimatesHidden(handleEstimatesHidden);
     socketService.onEstimatesReset(handleEstimatesReset);
     socketService.onFinalEstimateUpdated(handleFinalEstimateUpdated);
     socketService.onError(handleError);
@@ -165,6 +176,7 @@ export function useSocket(callbacks: UseSocketCallbacks = {}) {
       socketService.offTaskSelected(handleTaskSelected);
       socketService.offEstimateUpdated(handleEstimateUpdated);
       socketService.offEstimatesRevealed(handleEstimatesRevealed);
+      socketService.offEstimatesHidden(handleEstimatesHidden);
       socketService.offEstimatesReset(handleEstimatesReset);
       socketService.offFinalEstimateUpdated(handleFinalEstimateUpdated);
       socketService.offError(handleError);
@@ -267,6 +279,10 @@ export function useSocket(callbacks: UseSocketCallbacks = {}) {
     socketService.revealEstimates(payload);
   }, []);
 
+  const hideEstimates = useCallback((payload: Parameters<typeof socketService.hideEstimates>[0]) => {
+    socketService.hideEstimates(payload);
+  }, []);
+
   const resetEstimates = useCallback((payload: Parameters<typeof socketService.resetEstimates>[0]) => {
     socketService.resetEstimates(payload);
   }, []);
@@ -284,6 +300,7 @@ export function useSocket(callbacks: UseSocketCallbacks = {}) {
     selectTask,
     estimateTask,
     revealEstimates,
+    hideEstimates,
     resetEstimates,
     setFinalEstimate,
   };

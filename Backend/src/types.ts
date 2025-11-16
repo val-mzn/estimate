@@ -74,6 +74,10 @@ export interface RevealEstimatesPayload {
   roomCode: string;
 }
 
+export interface HideEstimatesPayload {
+  roomCode: string;
+}
+
 export interface ResetEstimatesPayload {
   roomCode: string;
 }
@@ -165,6 +169,16 @@ export interface EstimatesRevealedResponse {
     participationMode?: 'participant' | 'spectator';
   }>;
   average: number | null;
+}
+
+export interface EstimatesHiddenResponse {
+  participants: Array<{
+    id: string;
+    name: string;
+    role: ParticipantRole;
+    currentEstimate: string | null;
+    participationMode?: 'participant' | 'spectator';
+  }>;
 }
 
 export interface EstimatesResetResponse {

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useParams, useNavigate } from 'react-router';
 import { useSocket } from '../hooks/useSocket';
 import { useRoomStore } from '../stores/roomStore';
@@ -18,8 +19,11 @@ import RoomHeader from '../components/RoomHeader';
 import TaskList from '../components/TaskList';
 import ParticipantsList from '../components/ParticipantsList';
 import TaskDetails from '../components/TaskDetails';
+import { Card, CardContent } from '@/components/ui/card';
+import { FileTextIcon } from '@phosphor-icons/react';
 
 export default function RoomPage() {
+    const { t } = useTranslation();
     const { roomCode } = useParams<{ roomCode: string }>();
     const navigate = useNavigate();
     const [showAddTaskModal, setShowAddTaskModal] = useState(false);
@@ -37,6 +41,7 @@ export default function RoomPage() {
         setOnEstimate,
         setOnFinalEstimateChange,
         setOnReveal,
+        setOnHide,
     } = useTaskDetailsStore();
 
     const {
@@ -45,6 +50,7 @@ export default function RoomPage() {
         selectTask,
         estimateTask,
         revealEstimates,
+        hideEstimates,
         resetEstimates,
         setFinalEstimate,
     } = useSocket({
@@ -74,6 +80,7 @@ export default function RoomPage() {
         handleEstimate,
         handleFinalEstimateChange,
         handleReveal,
+        handleHide,
         handleAddTask,
         handleDeleteTask,
     } = useTaskHandlers({
@@ -85,6 +92,7 @@ export default function RoomPage() {
         deleteTask,
         estimateTask,
         revealEstimates,
+        hideEstimates,
         resetEstimates,
         setFinalEstimate,
         setShowAddTaskModal,
@@ -154,7 +162,8 @@ export default function RoomPage() {
         setOnEstimate(handleEstimate);
         setOnFinalEstimateChange(handleFinalEstimateChange);
         setOnReveal(handleReveal);
-    }, [handleEstimate, handleFinalEstimateChange, handleReveal, setOnEstimate, setOnFinalEstimateChange, setOnReveal]);
+        setOnHide(handleHide);
+    }, [handleEstimate, handleFinalEstimateChange, handleReveal, handleHide, setOnEstimate, setOnFinalEstimateChange, setOnReveal, setOnHide]);
 
     if (!room || !currentUser || !roomCode) {
         return <LoadingState />;
@@ -198,15 +207,15 @@ export default function RoomPage() {
                         {currentTask ? (
                             <TaskDetails cardSet={room.cardSet} />
                         ) : (
-                            <div className="bg-card backdrop-blur-sm rounded-2xl shadow-lg border border-border p-16 text-center">
-                                <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-muted mb-4">
-                                    <svg className="w-8 h-8 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                    </svg>
-                                </div>
-                                <p className="text-lg font-medium text-foreground">Aucune fiche sélectionnée</p>
-                                <p className="text-sm text-muted-foreground mt-2">Sélectionnez une fiche pour commencer l'estimation</p>
-                            </div>
+                            <Card>
+                                <CardContent className="text-center">
+                                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-muted mb-4">
+                                        <FileTextIcon className="w-8 h-8 text-muted-foreground" />
+                                    </div>
+                                    <p className="text-lg font-medium text-foreground">{t('taskList.noTaskSelected')}</p>
+                                    <p className="text-sm text-muted-foreground mt-2">{t('taskList.selectTaskToStart')}</p>
+                                </CardContent>
+                            </Card>
                         )}
                     </div>
                 </div>
@@ -224,8 +233,8 @@ export default function RoomPage() {
                 onConfirm={warningModal.onConfirm}
                 title={warningModal.title}
                 message={warningModal.message}
-                confirmText="Confirmer"
-                cancelText="Annuler"
+                confirmText={t('common.confirm')}
+                cancelText={t('common.cancel')}
             />
         </div>
     );
