@@ -41,7 +41,7 @@ services:
     command: sh -c "npx prisma generate && npx prisma migrate deploy && npm start"
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.backend.rule=PathPrefix(`/api`) || PathPrefix(`/socket.io`)"
+      - "traefik.http.routers.backend.rule=Host(`estimate.valmzn.ch`) && (PathPrefix(`/api`) || PathPrefix(`/socket.io`))"
       - "traefik.http.routers.backend.entrypoints=websecure"
       - "traefik.http.routers.backend.tls=true"
       - "traefik.http.routers.backend.tls.certresolver=letsencrypt"
@@ -64,7 +64,7 @@ services:
       - backend
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.frontend.rule=PathPrefix(`/`)"
+      - "traefik.http.routers.frontend.rule=Host(`estimate.valmzn.ch`)"
       - "traefik.http.routers.frontend.entrypoints=websecure"
       - "traefik.http.routers.frontend.tls=true"
       - "traefik.http.routers.frontend.tls.certresolver=letsencrypt"
