@@ -114,17 +114,22 @@ jobs:
 
       - name: Copy files to server
         run: |
-          rsync -avz --delete \
-            --exclude 'node_modules' \
-            --exclude '.git' \
-            --exclude 'dist' \
-            --exclude '*.db' \
-            -e "ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no" \
-            ./ ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:${{ secrets.SERVER_PATH }}
+          rsync -avz \
+            -e "ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no -o BatchMode=yes -o PasswordAuthentication=no" \
+            docker-compose.yml \
+            docker-compose.demo.yml \
+            Backend/prisma/migrations/ \
+            ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:${{ secrets.SERVER_PATH }}/
+          
+          # Ensure data directory exists (but don't sync .db files)
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no -o BatchMode=yes -o PasswordAuthentication=no \
+            ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} \
+            "mkdir -p ${{ secrets.SERVER_PATH }}/Backend/prisma/data"
 
       - name: Deploy on server
         run: |
-          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << EOF
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no -o BatchMode=yes -o PasswordAuthentication=no \
+            ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << EOF
             set -e
             cd ${{ secrets.SERVER_PATH }}
             
@@ -146,7 +151,8 @@ jobs:
       - name: Health check
         run: |
           sleep 10
-          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << EOF
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no -o BatchMode=yes -o PasswordAuthentication=no \
+            ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << EOF
             cd ${{ secrets.SERVER_PATH }}
             docker-compose -f docker-compose.yml -f docker-compose.demo.yml ps
             docker-compose -f docker-compose.yml -f docker-compose.demo.yml logs --tail=50 backend
