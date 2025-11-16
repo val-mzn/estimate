@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation, useSearchParams } from 'react-router';
 import { useTranslation } from 'react-i18next';
+import { toast } from 'sonner';
 import { useSocket } from '../hooks/useSocket';
 import { useRoomStore } from '../stores/roomStore';
 import BackButton from '../components/BackButton';
-import ErrorAlert from '../components/ErrorAlert';
 import FormField from '../components/FormField';
 import RoomCodeField from '../components/RoomCodeField';
 import RoleSelector from '../components/RoleSelector';
@@ -23,11 +23,10 @@ export default function JoinRoomPage() {
     const [userName, setUserName] = useState('');
     const [role, setRole] = useState<'participant' | 'spectator'>('participant');
     const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
     
     const { joinRoom } = useSocket({
         onError: (err) => {
-            setError(err.message);
+            toast.error(err.message);
             setIsLoading(false);
         },
     });
@@ -55,18 +54,16 @@ export default function JoinRoomPage() {
     const handleRoomCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 5);
         setRoomCode(value);
-        setError(null);
     };
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (roomCode.length !== 5 || !userName.trim()) {
-            setError(t('joinRoom.fillAllFields'));
+            toast.error(t('joinRoom.fillAllFields'));
             return;
         }
         
         setIsLoading(true);
-        setError(null);
         reset();
         
         // Sauvegarder le nom dans localStorage
@@ -93,8 +90,6 @@ export default function JoinRoomPage() {
                         <BackButton />
                         <PageHeader title={t('joinRoom.title')} description={t('joinRoom.description')} />
 
-                        {error && <ErrorAlert message={error} />}
-
                         <form onSubmit={handleSubmit} className="space-y-5">
                         <RoomCodeField
                             id="roomCode"
@@ -113,7 +108,6 @@ export default function JoinRoomPage() {
                             value={userName}
                             onChange={(e) => {
                                 setUserName(e.target.value);
-                                setError(null);
                             }}
                             placeholder={t('joinRoom.userNamePlaceholder')}
                             required

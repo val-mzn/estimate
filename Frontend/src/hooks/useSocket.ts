@@ -40,7 +40,6 @@ export function useSocket(callbacks: UseSocketCallbacks = {}) {
     setRoom,
     setCurrentUser,
     setConnected,
-    setError,
     addParticipant,
     removeParticipant,
     updateParticipantEstimate,
@@ -127,11 +126,7 @@ export function useSocket(callbacks: UseSocketCallbacks = {}) {
     };
 
     const handleError = (response: ErrorResponse) => {
-      if (response.message === 'Seul le créateur peut sélectionner/désélectionner des fiches') {
-        toast.error(response.message);
-      } else {
-        setError(response.message);
-      }
+      toast.error(response.message);
       callbacksRef.current.onError?.(response);
     };
 
@@ -146,7 +141,7 @@ export function useSocket(callbacks: UseSocketCallbacks = {}) {
     };
 
     const handleKicked = (response: { message: string }) => {
-      setError(response.message);
+      toast.error(response.message);
       setTimeout(() => {
         reset();
         window.location.href = '/';
@@ -188,7 +183,6 @@ export function useSocket(callbacks: UseSocketCallbacks = {}) {
     setRoom,
     setCurrentUser,
     setConnected,
-    setError,
     addParticipant,
     removeParticipant,
     updateParticipantEstimate,
@@ -287,6 +281,10 @@ export function useSocket(callbacks: UseSocketCallbacks = {}) {
     socketService.resetEstimates(payload);
   }, []);
 
+  const previewFinalEstimate = useCallback((payload: Parameters<typeof socketService.previewFinalEstimate>[0]) => {
+    socketService.previewFinalEstimate(payload);
+  }, []);
+
   const setFinalEstimate = useCallback((payload: Parameters<typeof socketService.setFinalEstimate>[0]) => {
     socketService.setFinalEstimate(payload);
   }, []);
@@ -302,6 +300,7 @@ export function useSocket(callbacks: UseSocketCallbacks = {}) {
     revealEstimates,
     hideEstimates,
     resetEstimates,
+    previewFinalEstimate,
     setFinalEstimate,
   };
 }

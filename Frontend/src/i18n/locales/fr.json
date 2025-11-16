@@ -58,7 +58,8 @@
     "tasks": "Fiches",
     "voting": "Vote",
     "results": "Résultats",
-    "finalEstimate": "Estimation finale"
+    "finalEstimate": "Estimation finale",
+    "recommendedEstimate": "Estimation recommandée : {{value}}"
   },
   "role": {
     "label": "Rôle",
@@ -74,7 +75,7 @@
     "yourEstimate": "Votre estimation",
     "selectValue": "Sélectionnez une valeur ci-dessous",
     "revealEstimates": "Révéler les estimations",
-    "hideEstimates": "Masquer les estimations",
+    "hideEstimates": "Retour au vote",
     "revealAnyway": "Révéler quand même",
     "notAllVoted": "Tous les participants n'ont pas encore terminé leur estimation ({{voted}}/{{total}}). Voulez-vous vraiment révéler les estimations maintenant ?"
   },
@@ -92,6 +93,7 @@
     "addTaskToStart": "Ajoutez une fiche pour commencer",
     "noTaskSelected": "Aucune fiche sélectionnée",
     "selectTaskToStart": "Sélectionnez une fiche pour commencer l'estimation",
+    "tasksEstimated": "fiches estimées",
     "estimate": "Estimation",
     "actions": "Actions",
     "removeParticipant": "Retirer ce participant"
@@ -115,8 +117,9 @@
   "metrics": {
     "voteCount": "Nombre de votes",
     "average": "Moyenne",
-    "median": "Médiane",
-    "abstention": "Abstention"
+    "median": "Médiane PK",
+    "abstention": "Abstention",
+    "medianExplanation": "* La médiane PK est calculée sur les cartes disponibles dans l'intervalle [vote min, vote max] du jeu de cartes. En cas d'égalité, on arrondit vers le supérieur."
   },
   "theme": {
     "toggle": "Changer le thème",

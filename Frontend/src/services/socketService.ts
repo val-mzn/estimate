@@ -11,6 +11,7 @@ import type {
   HideEstimatesPayload,
   ResetEstimatesPayload,
   SetFinalEstimatePayload,
+  PreviewFinalEstimatePayload,
   RoomCreatedResponse,
   RoomJoinedResponse,
   ParticipantJoinedResponse,
@@ -184,6 +185,10 @@ class SocketService {
 
   offEstimatesReset(callback: (response: EstimatesResetResponse) => void): void {
     this.socket?.off('estimates-reset', callback);
+  }
+
+  previewFinalEstimate(payload: PreviewFinalEstimatePayload): void {
+    this.socket?.emit('preview-final-estimate', payload);
   }
 
   setFinalEstimate(payload: SetFinalEstimatePayload): void {

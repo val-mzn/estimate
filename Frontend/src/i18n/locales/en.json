@@ -58,7 +58,8 @@
     "tasks": "Tasks",
     "voting": "Voting",
     "results": "Results",
-    "finalEstimate": "Final estimate"
+    "finalEstimate": "Final estimate",
+    "recommendedEstimate": "Recommended estimate: {{value}}"
   },
   "role": {
     "label": "Role",
@@ -74,7 +75,7 @@
     "yourEstimate": "Your estimate",
     "selectValue": "Select a value below",
     "revealEstimates": "Reveal estimates",
-    "hideEstimates": "Hide estimates",
+    "hideEstimates": "Return to vote",
     "revealAnyway": "Reveal anyway",
     "notAllVoted": "Not all participants have finished their estimate ({{voted}}/{{total}}). Do you really want to reveal the estimates now?"
   },
@@ -92,6 +93,7 @@
     "addTaskToStart": "Add a task to get started",
     "noTaskSelected": "No task selected",
     "selectTaskToStart": "Select a task to start estimating",
+    "tasksEstimated": "tasks estimated",
     "estimate": "Estimate",
     "actions": "Actions",
     "removeParticipant": "Remove this participant"
@@ -115,8 +117,9 @@
   "metrics": {
     "voteCount": "Vote count",
     "average": "Average",
-    "median": "Median",
-    "abstention": "Abstention"
+    "median": "Median PK",
+    "abstention": "Abstention",
+    "medianExplanation": "* The PK median is calculated on the cards available in the [min vote, max vote] interval from the card set. In case of a tie, we round up."
   },
   "theme": {
     "toggle": "Toggle theme",

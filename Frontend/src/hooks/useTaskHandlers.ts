@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import type { Room, Participant } from '../types';
+import type { Room } from '../types';
 
 interface UseTaskHandlersParams {
   room: Room | null;
@@ -12,6 +12,7 @@ interface UseTaskHandlersParams {
   revealEstimates: (payload: { roomCode: string }) => void;
   hideEstimates: (payload: { roomCode: string }) => void;
   resetEstimates: (payload: { roomCode: string }) => void;
+  previewFinalEstimate: (payload: { roomCode: string; taskId: string; finalEstimate: number | '?' | null }) => void;
   setFinalEstimate: (payload: { roomCode: string; taskId: string; finalEstimate: number | '?' | null }) => void;
   setShowAddTaskModal: (show: boolean) => void;
 }
@@ -27,6 +28,7 @@ export function useTaskHandlers({
   revealEstimates,
   hideEstimates,
   resetEstimates,
+  previewFinalEstimate,
   setFinalEstimate,
   setShowAddTaskModal,
 }: UseTaskHandlersParams) {
@@ -38,6 +40,15 @@ export function useTaskHandlers({
       estimate: value,
     });
   }, [room?.currentTaskId, isParticipant, roomCode, estimateTask]);
+
+  const handleFinalEstimatePreview = useCallback((value: number | '?' | null) => {
+    if (!room?.currentTaskId || !roomCode) return;
+    previewFinalEstimate({
+      roomCode,
+      taskId: room.currentTaskId,
+      finalEstimate: value,
+    });
+  }, [room?.currentTaskId, roomCode, previewFinalEstimate]);
 
   const handleFinalEstimateChange = useCallback((value: number | '?' | null) => {
     if (!room?.currentTaskId || !roomCode) return;
@@ -79,6 +90,7 @@ export function useTaskHandlers({
 
   return {
     handleEstimate,
+    handleFinalEstimatePreview,
     handleFinalEstimateChange,
     handleReveal,
     handleHide,

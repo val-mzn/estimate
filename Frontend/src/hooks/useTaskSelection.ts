@@ -38,34 +38,11 @@ export function useTaskSelection({
       return;
     }
 
-    // Sauvegarder l'estimation finale de la tâche précédente si elle était révélée
-    if (room.currentTaskId && room.isRevealed) {
-      const currentTask = room.tasks.find((t) => t.id === room.currentTaskId);
-      if (currentTask) {
-        const currentEstimates = getEstimatesFromParticipants(room.participants);
-        
-        if (currentEstimates.length > 0) {
-          const recommendedEstimate = calculateRecommendedEstimate(
-            currentEstimates,
-            room.cardSet
-          );
-          
-          if (recommendedEstimate !== null) {
-            const taskFinalEstimate = (currentTask as any).finalEstimate as number | '?' | null;
-            if (taskFinalEstimate === null || (typeof taskFinalEstimate === 'number' && taskFinalEstimate !== recommendedEstimate)) {
-              setFinalEstimate({
-                roomCode,
-                taskId: room.currentTaskId,
-                finalEstimate: recommendedEstimate,
-              });
-            }
-          }
-        }
-      }
-    }
+    // La sauvegarde automatique de l'estimation finale a été désactivée
+    // L'estimation finale doit être sauvegardée manuellement via le bouton "Sauvegarder"
     
     selectTask({ roomCode, taskId });
-  }, [room, roomCode, selectTask, setFinalEstimate]);
+  }, [roomCode, selectTask]);
 
   const handleSelectTask = useCallback((taskId: string) => {
     if (!room) return;

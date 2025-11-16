@@ -82,6 +82,12 @@ export interface ResetEstimatesPayload {
   roomCode: string;
 }
 
+export interface PreviewFinalEstimatePayload {
+  roomCode: string;
+  taskId: string;
+  finalEstimate: number | '?' | null;
+}
+
 export interface SetFinalEstimatePayload {
   roomCode: string;
   taskId: string;

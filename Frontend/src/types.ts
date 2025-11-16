@@ -88,6 +88,12 @@ export interface SetFinalEstimatePayload {
   finalEstimate: number | '?' | null;
 }
 
+export interface PreviewFinalEstimatePayload {
+  roomCode: string;
+  taskId: string;
+  finalEstimate: number | '?' | null;
+}
+
 export interface FinalEstimateUpdatedResponse {
   taskId: string;
   finalEstimate: number | '?' | null;

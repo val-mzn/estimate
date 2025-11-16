@@ -48,11 +48,18 @@ export default function EstimateMetrics({
     }, [participants, averageEstimate, medianEstimate]);
 
     return (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
-            <EstimateMetricItem label={t('metrics.voteCount')} value={metrics.voteCount} />
-            <EstimateMetricItem label={t('metrics.average')} value={metrics.average !== null ? metrics.average as number : '-'} />
-            <EstimateMetricItem label={t('metrics.median')} value={metrics.median !== null ? metrics.median as number : '-'} />
-            <EstimateMetricItem label={t('metrics.abstention')} value={metrics.abstentionPercentage.toString() + '%'} />
+        <div className="space-y-3">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <EstimateMetricItem label={t('metrics.voteCount')} value={metrics.voteCount} />
+                <EstimateMetricItem label={t('metrics.average')} value={metrics.average !== null ? metrics.average as number : '-'} />
+                <EstimateMetricItem label={t('metrics.median')} value={metrics.median !== null ? metrics.median as number : '-'} />
+                <EstimateMetricItem label={t('metrics.abstention')} value={metrics.abstentionPercentage.toString() + '%'} />
+            </div>
+            {metrics.median !== null && (
+                <p className="text-xs text-muted-foreground">
+                    {t('metrics.medianExplanation')}
+                </p>
+            )}
         </div>
     );
 }

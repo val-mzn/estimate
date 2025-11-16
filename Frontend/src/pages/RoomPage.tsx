@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams, useNavigate } from 'react-router';
 import { useSocket } from '../hooks/useSocket';
@@ -8,13 +8,11 @@ import { useRoomNavigation } from '../hooks/useRoomNavigation';
 import { useEstimateCalculations } from '../hooks/useEstimateCalculations';
 import { useTaskHandlers } from '../hooks/useTaskHandlers';
 import { useTaskSelection } from '../hooks/useTaskSelection';
-import { useAutoFinalEstimate } from '../hooks/useAutoFinalEstimate';
 import { socketService } from '../services/socketService';
 import type { Task } from '../types';
 import AddTaskModal from '../components/AddTaskModal';
 import WarningModal from '../components/WarningModal';
 import LoadingState from '../components/LoadingState';
-import ErrorAlert from '../components/ErrorAlert';
 import RoomHeader from '../components/RoomHeader';
 import TaskList from '../components/TaskList';
 import ParticipantsList from '../components/ParticipantsList';
@@ -32,16 +30,17 @@ export default function RoomPage() {
         room,
         currentUser,
         isConnected,
-        error,
         reset,
     } = useRoomStore();
 
     const {
         updateTaskDetails,
         setOnEstimate,
+        setOnFinalEstimatePreview,
         setOnFinalEstimateChange,
         setOnReveal,
         setOnHide,
+        setOnCloseTask,
     } = useTaskDetailsStore();
 
     const {
@@ -52,6 +51,7 @@ export default function RoomPage() {
         revealEstimates,
         hideEstimates,
         resetEstimates,
+        previewFinalEstimate,
         setFinalEstimate,
     } = useSocket({
         onError: (err) => {
@@ -78,6 +78,7 @@ export default function RoomPage() {
 
     const {
         handleEstimate,
+        handleFinalEstimatePreview,
         handleFinalEstimateChange,
         handleReveal,
         handleHide,
@@ -94,6 +95,7 @@ export default function RoomPage() {
         revealEstimates,
         hideEstimates,
         resetEstimates,
+        previewFinalEstimate,
         setFinalEstimate,
         setShowAddTaskModal,
     });
@@ -107,16 +109,6 @@ export default function RoomPage() {
         roomCode,
         isCreator,
         selectTask,
-        setFinalEstimate,
-    });
-
-    useAutoFinalEstimate({
-        isCreator,
-        room,
-        currentTask,
-        roomCode,
-        medianEstimate,
-        estimatesForCurrentTask,
         setFinalEstimate,
     });
 
@@ -157,13 +149,20 @@ export default function RoomPage() {
         currentUser,
     ]);
 
+    const handleCloseTask = useCallback(() => {
+        if (!roomCode) return;
+        selectTask({ roomCode, taskId: null });
+    }, [roomCode, selectTask]);
+
     // Set handlers
     useEffect(() => {
         setOnEstimate(handleEstimate);
+        setOnFinalEstimatePreview(handleFinalEstimatePreview);
         setOnFinalEstimateChange(handleFinalEstimateChange);
         setOnReveal(handleReveal);
         setOnHide(handleHide);
-    }, [handleEstimate, handleFinalEstimateChange, handleReveal, handleHide, setOnEstimate, setOnFinalEstimateChange, setOnReveal, setOnHide]);
+        setOnCloseTask(handleCloseTask);
+    }, [handleEstimate, handleFinalEstimatePreview, handleFinalEstimateChange, handleReveal, handleHide, handleCloseTask, setOnEstimate, setOnFinalEstimatePreview, setOnFinalEstimateChange, setOnReveal, setOnHide, setOnCloseTask]);
 
     if (!room || !currentUser || !roomCode) {
         return <LoadingState />;
@@ -172,8 +171,6 @@ export default function RoomPage() {
     return (
         <div className="min-h-screen bg-background">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
-                {error && <ErrorAlert message={error} />}
-
                 <RoomHeader
                     roomName={room.name}
                     roomCode={roomCode!}
@@ -214,6 +211,11 @@ export default function RoomPage() {
                                     </div>
                                     <p className="text-lg font-medium text-foreground">{t('taskList.noTaskSelected')}</p>
                                     <p className="text-sm text-muted-foreground mt-2">{t('taskList.selectTaskToStart')}</p>
+                                    {room.tasks.length > 0 && (
+                                        <p className="text-sm text-muted-foreground mt-3">
+                                            {room.tasks.filter(task => task.finalEstimate !== null).length} / {room.tasks.length} {t('taskList.tasksEstimated')}
+                                        </p>
+                                    )}
                                 </CardContent>
                             </Card>
                         )}

@@ -4,7 +4,7 @@ import {
   parseNumericCardSet,
   getEstimatesFromParticipants,
   calculateAverage,
-  calculateRecommendedEstimate,
+  calculateMedian,
 } from '../utils/estimateUtils';
 import { getCurrentUserEstimate, getTotalParticipants, getVotedParticipants } from '../utils/roomUtils';
 
@@ -34,7 +34,9 @@ export function useEstimateCalculations(
 
   const medianEstimate = useMemo(() => {
     if (!room) return null;
-    return calculateRecommendedEstimate(estimatesForCurrentTask, room.cardSet);
+    // Calculer directement la médiane sans tenir compte du pourcentage d'abstentions
+    // pour l'affichage dans les métriques
+    return calculateMedian(estimatesForCurrentTask, room.cardSet);
   }, [estimatesForCurrentTask, room?.cardSet]);
 
   const totalParticipants = useMemo(() => {

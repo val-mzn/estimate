@@ -53,16 +53,26 @@ export function calculateAverage(estimates: number[]): number | null {
 }
 
 export function calculateMedian(estimates: number[], cardSet?: string[]): number | null {
-  if (estimates.length === 0) return null;
+  // Filtrer les valeurs non numériques
+  const numericEstimates = estimates
+    .map(val => typeof val === 'number' ? val : parseFloat(String(val)))
+    .filter(val => !isNaN(val) && isFinite(val));
   
+  if (numericEstimates.length === 0) return null;
+  
+  // Si une seule valeur, retourner cette valeur directement
+  if (numericEstimates.length === 1) return numericEstimates[0];
+  
+  // Si on a un cardSet, calculer la médiane sur les cartes de l'intervalle
   if (cardSet && cardSet.length > 0) {
     const numericCardSet = parseNumericCardSet(cardSet);
     
     if (numericCardSet.length > 0) {
-      const sortedEstimates = [...estimates].sort((a, b) => a - b);
+      const sortedEstimates = [...numericEstimates].sort((a, b) => a - b);
       const minVote = sortedEstimates[0];
       const maxVote = sortedEstimates[sortedEstimates.length - 1];
       
+      // Filtrer les cartes dans l'intervalle [minVote, maxVote]
       const intervalCards = numericCardSet.filter(
         card => card >= minVote && card <= maxVote
       );
@@ -72,36 +82,35 @@ export function calculateMedian(estimates: number[], cardSet?: string[]): number
           return intervalCards[0];
         }
         
+        // Calculer la médiane sur les cartes de l'intervalle
         const mid = Math.floor(intervalCards.length / 2);
         
         if (intervalCards.length % 2 === 0) {
-          return (intervalCards[mid - 1] + intervalCards[mid]) / 2;
+          // Nombre pair de cartes : prendre la carte supérieure (arrondi vers le supérieur)
+          return intervalCards[mid];
         } else {
+          // Nombre impair de cartes : valeur du milieu
           return intervalCards[mid];
         }
       }
     }
   }
   
-  const sorted = [...estimates].sort((a, b) => a - b);
+  // Sinon, calculer la médiane sur les votes réels
+  const sorted = [...numericEstimates].sort((a, b) => a - b);
   const mid = Math.floor(sorted.length / 2);
   
+  let median: number;
   if (sorted.length % 2 === 0) {
-    const leftValue = sorted[mid - 1];
-    const rightValue = sorted[mid];
-    const leftCount = sorted.filter(v => v === leftValue).length;
-    const rightCount = sorted.filter(v => v === rightValue).length;
-    
-    if (leftCount === rightCount && leftValue !== rightValue) {
-      return (leftValue + rightValue) / 2;
-    }
+    // Nombre pair de votes : moyenne des deux valeurs du milieu
+    median = (sorted[mid - 1] + sorted[mid]) / 2;
+  } else {
+    // Nombre impair de votes : valeur du milieu
+    median = sorted[mid];
   }
   
-  const median = sorted.length % 2 === 0
-    ? (sorted[mid - 1] + sorted[mid]) / 2
-    : sorted[mid];
+  // Arrondir la médiane si nécessaire
   const rounded = median % 1 === 0.5 ? Math.ceil(median) : Math.round(median);
-  
   return rounded;
 }
 
@@ -122,11 +131,32 @@ export function findClosestCard(median: number, cardSet: number[]): number {
   return closest;
 }
 
+export function getAbstentionPercentage(participants: Participant[]): number {
+  const activeParticipants = participants.filter(isActiveParticipant);
+  if (activeParticipants.length === 0) return 0;
+  
+  // Compter les abstentions : ceux qui n'ont pas voté OU qui ont voté "?"
+  const abstentions = activeParticipants.filter(p => 
+    p.currentEstimate === null || p.currentEstimate === '?'
+  ).length;
+  
+  return (abstentions / activeParticipants.length) * 100;
+}
+
 export function calculateRecommendedEstimate(
   estimates: number[],
-  cardSet: string[]
+  cardSet: string[],
+  participants?: Participant[]
 ): number | null {
   if (estimates.length === 0) return null;
+  
+  // Si on a les participants, vérifier le pourcentage d'abstentions
+  if (participants) {
+    const abstentionPercentage = getAbstentionPercentage(participants);
+    if (abstentionPercentage >= 50) {
+      return null; // Indique qu'on doit recommander "?"
+    }
+  }
   
   return calculateMedian(estimates, cardSet);
 }

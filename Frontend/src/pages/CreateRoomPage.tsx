@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
+import { toast } from 'sonner';
 import { useSocket } from '../hooks/useSocket';
 import { useRoomStore } from '../stores/roomStore';
 import BackButton from '../components/BackButton';
-import ErrorAlert from '../components/ErrorAlert';
 import FormField from '../components/FormField';
 import RoleSelector from '../components/RoleSelector';
 import PageHeader from '../components/PageHeader';
@@ -21,11 +21,10 @@ export default function CreateRoomPage() {
     const [cardSet, setCardSet] = useState('0, 0.5, 1, 2, 3, 5, 8, 13, 21, 40, 100, ?, ∞, ☕');
     const [role, setRole] = useState<'participant' | 'spectator'>('participant');
     const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
     
     const { createRoom } = useSocket({
         onError: (err) => {
-            setError(err.message);
+            toast.error(err.message);
             setIsLoading(false);
         },
     });
@@ -43,12 +42,11 @@ export default function CreateRoomPage() {
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (!roomName.trim() || !userName.trim()) {
-            setError(t('createRoom.fillAllFields'));
+            toast.error(t('createRoom.fillAllFields'));
             return;
         }
         
         setIsLoading(true);
-        setError(null);
         reset();
         
         // Sauvegarder le nom dans localStorage
@@ -75,8 +73,6 @@ export default function CreateRoomPage() {
                     <CardContent className="p-8 space-y-6">
                         <BackButton />
                         <PageHeader title={t('createRoom.title')} description={t('createRoom.description')} />
-
-                        {error && <ErrorAlert message={error} />}
 
                         <form onSubmit={handleSubmit} className="space-y-5">
                         <FormField

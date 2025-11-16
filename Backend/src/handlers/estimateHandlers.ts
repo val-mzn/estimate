@@ -5,6 +5,7 @@ import {
   RevealEstimatesPayload,
   HideEstimatesPayload,
   ResetEstimatesPayload,
+  PreviewFinalEstimatePayload,
   SetFinalEstimatePayload,
   EstimateUpdatedResponse,
   EstimatesRevealedResponse,
@@ -243,6 +244,52 @@ export function registerEstimateHandlers(io: Server, socket: Socket) {
       const errorResponse: ErrorResponse = { message: 'Erreur lors de la réinitialisation' };
       socket.emit('error', errorResponse);
       logger.error('Error resetting estimates', { error, roomCode: payload.roomCode, socketId: socket.id });
+    }
+  });
+
+  socket.on('preview-final-estimate', (payload: PreviewFinalEstimatePayload) => {
+    try {
+      const { roomCode, taskId, finalEstimate } = payload;
+      const room = rooms.get(roomCode);
+      
+      if (!room) {
+        const errorResponse: ErrorResponse = { message: 'Room introuvable' };
+        socket.emit('error', errorResponse);
+        return;
+      }
+      
+      const participant = Array.from(room.participants.values())
+        .find(p => p.socketId === socket.id);
+      
+      if (!participant || participant.role !== 'creator') {
+        const errorResponse: ErrorResponse = { message: 'Seul le créateur peut prévisualiser l\'estimation finale' };
+        socket.emit('error', errorResponse);
+        return;
+      }
+      
+      const task = room.tasks.get(taskId);
+      if (!task) {
+        const errorResponse: ErrorResponse = { message: 'Fiche introuvable' };
+        socket.emit('error', errorResponse);
+        return;
+      }
+      
+      const response: FinalEstimateUpdatedResponse = {
+        taskId,
+        finalEstimate
+      };
+      
+      io.to(roomCode).emit('final-estimate-updated', response);
+      
+      logger.info(`Final estimate preview updated in room ${roomCode} for task ${taskId}: ${finalEstimate || 'removed'}`, { 
+        roomCode, 
+        taskId, 
+        finalEstimate 
+      });
+    } catch (error) {
+      const errorResponse: ErrorResponse = { message: 'Erreur lors de la prévisualisation de l\'estimation finale' };
+      socket.emit('error', errorResponse);
+      logger.error('Error previewing final estimate', { error, roomCode: payload.roomCode, taskId: payload.taskId, socketId: socket.id });
     }
   });
 

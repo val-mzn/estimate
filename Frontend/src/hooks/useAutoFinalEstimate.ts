@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import type { Room, Task } from '../types';
-import { hasNoNumericEstimates } from '../utils/estimateUtils';
+import { hasNoNumericEstimates, getAbstentionPercentage } from '../utils/estimateUtils';
 
 interface UseAutoFinalEstimateParams {
   isCreator: boolean;
@@ -32,8 +32,10 @@ export function useAutoFinalEstimate({
     }
 
     const hasNoNumeric = hasNoNumericEstimates(room.participants);
+    const abstentionPercentage = getAbstentionPercentage(room.participants);
+    const shouldRecommendAbstention = abstentionPercentage >= 50;
     
-    if (hasNoNumeric) {
+    if (hasNoNumeric || shouldRecommendAbstention) {
       setFinalEstimate({
         roomCode,
         taskId: currentTask.id,

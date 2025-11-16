@@ -9,11 +9,11 @@ import VotingSection from './VotingSection';
 import VoteProgress from './VoteProgress';
 import FinalEstimate from './FinalEstimate';
 import VotingTimer from './VotingTimer';
-import { hasNoNumericEstimates } from '../utils/estimateUtils';
+import { hasNoNumericEstimates, isActiveParticipant } from '../utils/estimateUtils';
 import { Button } from './ui/button';
 import { Card, CardContent } from './ui/card';
-import { Alert, AlertDescription } from './ui/alert';
 import WarningModal from './WarningModal';
+import { EyeIcon } from '@phosphor-icons/react';
 
 interface TaskDetailsProps {
     cardSet: string[];
@@ -35,9 +35,11 @@ export default function TaskDetails({ cardSet }: TaskDetailsProps) {
         totalParticipants,
         numericCardSet,
         onEstimate,
+        onFinalEstimatePreview,
         onFinalEstimateChange,
         onReveal,
         onHide,
+        onCloseTask,
         getPreviousCardValue,
         getNextCardValue,
     } = useTaskDetailsStore();
@@ -53,17 +55,17 @@ export default function TaskDetails({ cardSet }: TaskDetailsProps) {
     }
 
     const isRevealedState = room.isRevealed;
-    const cardSetWithQuestion = [...cardSet, '?'];
     const hasNoNumeric = hasNoNumericEstimates(room.participants);
 
     if (!onEstimate || !onFinalEstimateChange) {
         return null;
     }
 
-    const shouldShowResults = isRevealedState && (
-        (averageEstimate !== null && medianEstimate !== null && estimatesForCurrentTask.length > 0) ||
-        hasNoNumeric
+    const hasVotes = room.participants.some(p => 
+        isActiveParticipant(p) && p.currentEstimate !== null
     );
+    
+    const shouldShowResults = isRevealedState && (hasVotes || hasNoNumeric);
 
     const allVoted = votedParticipants === totalParticipants && totalParticipants > 0;
 
@@ -94,17 +96,9 @@ export default function TaskDetails({ cardSet }: TaskDetailsProps) {
                     </div>
                 </div>
 
-            {shouldShowResults ? (
-                <>
-                    {hasNoNumeric ? (
-                        <Alert variant="destructive">
-                            <AlertDescription className="text-center">
-                                <p className="text-lg font-semibold mb-1">{t('taskDetails.noNumericEstimates')}</p>
-                                <p className="text-sm">{t('taskDetails.allEstimatesAreSymbols')}</p>
-                            </AlertDescription>
-                        </Alert>
-                    ) : (
-                        <>
+                {shouldShowResults ? (
+                    <div className="flex flex-col gap-4">
+                        <div>
                             <EstimateResultsChart
                                 estimates={estimatesForCurrentTask}
                                 median={medianEstimate ?? 0}
@@ -116,20 +110,23 @@ export default function TaskDetails({ cardSet }: TaskDetailsProps) {
                                 averageEstimate={averageEstimate}
                                 medianEstimate={medianEstimate}
                             />
-                        </>
-                    )}
-                    <FinalEstimate
-                        value={currentTask.finalEstimate}
-                        medianEstimate={hasNoNumeric ? null : medianEstimate}
-                        hasNoNumericEstimates={hasNoNumeric}
-                        readOnly={!isCreator}
-                        numericCardSet={numericCardSet}
-                        onValueChange={isCreator ? onFinalEstimateChange : undefined}
-                        getPreviousCardValue={isCreator ? getPreviousCardValue : undefined}
-                        getNextCardValue={isCreator ? getNextCardValue : undefined}
-                    />
-                    {isCreator && onHide && (
-                        <div className="mt-6">
+                        </div>
+                        
+                        <FinalEstimate
+                            value={currentTask.finalEstimate}
+                            medianEstimate={hasNoNumeric ? null : medianEstimate}
+                            hasNoNumericEstimates={hasNoNumeric}
+                            readOnly={!isCreator}
+                            numericCardSet={numericCardSet}
+                            participants={room.participants}
+                            onPreviewChange={isCreator ? onFinalEstimatePreview ?? undefined : undefined}
+                            onValueChange={isCreator ? onFinalEstimateChange ?? undefined : undefined}
+                            getPreviousCardValue={isCreator ? getPreviousCardValue : undefined}
+                            getNextCardValue={isCreator ? getNextCardValue : undefined}
+                            onSave={isCreator ? onCloseTask ?? undefined : undefined}
+                        />
+                        {isCreator && onHide && (
+
                             <Button
                                 onClick={onHide}
                                 variant="outline"
@@ -138,68 +135,65 @@ export default function TaskDetails({ cardSet }: TaskDetailsProps) {
                             >
                                 {t('voting.hideEstimates')}
                             </Button>
-                        </div>
-                    )}
-                </>
-            ) : (
-                <>
-                    {isParticipant ? (
-                        <VotingSection
-                            cardSet={cardSetWithQuestion}
-                            currentUserEstimate={currentUserEstimate}
-                            votedParticipants={votedParticipants}
-                            totalParticipants={totalParticipants}
-                            participants={room.participants}
-                            currentTaskId={currentTask.id}
-                            onEstimate={onEstimate}
-                            isCreator={isCreator}
-                            isRevealed={isRevealedState}
-                            onReveal={onReveal || undefined}
-                        />
-                    ) : (
-                        <>
-                            <VoteProgress 
-                                votedParticipants={votedParticipants} 
+
+                        )}
+                    </div>
+                ) : (
+                    <>
+                        {isParticipant ? (
+                            <VotingSection
+                                cardSet={cardSet}
+                                currentUserEstimate={currentUserEstimate}
+                                votedParticipants={votedParticipants}
                                 totalParticipants={totalParticipants}
                                 participants={room.participants}
-                                isCreator={isCreator}
                                 currentTaskId={currentTask.id}
+                                onEstimate={onEstimate}
+                                isCreator={isCreator}
+                                isRevealed={isRevealedState}
+                                onReveal={onReveal || undefined}
                             />
-                            {isCreator && !isRevealedState && onReveal && (
-                                <div className="mb-6">
-                                    <Button
-                                        onClick={handleRevealClick}
-                                        size="lg"
-                                        className="w-full"
-                                    >
-                                        {t('voting.revealEstimates')}
-                                    </Button>
+                        ) : (
+                            <>
+                                <VoteProgress
+                                    votedParticipants={votedParticipants}
+                                    totalParticipants={totalParticipants}
+                                    participants={room.participants}
+                                    isCreator={isCreator}
+                                    currentTaskId={currentTask.id}
+                                />
+                                {isCreator && !isRevealedState && onReveal && (
+                                    <div className="mb-6">
+                                        <Button
+                                            onClick={handleRevealClick}
+                                            size="lg"
+                                            className="w-full"
+                                        >
+                                            {t('voting.revealEstimates')}
+                                        </Button>
+                                    </div>
+                                )}
+                                <div className="text-center py-12">
+                                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-muted mb-4">
+                                        <EyeIcon className="w-8 h-8 text-muted-foreground" />
+                                    </div>
+                                    <p className="text-foreground font-medium">{t('taskDetails.youAreSpectator')}</p>
+                                    <p className="text-sm text-muted-foreground mt-1">{t('taskDetails.canObserveEstimates')}</p>
                                 </div>
-                            )}
-                            <div className="text-center py-12">
-                                <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-muted mb-4">
-                                    <svg className="w-8 h-8 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                    </svg>
-                                </div>
-                                <p className="text-foreground font-medium">{t('taskDetails.youAreSpectator')}</p>
-                                <p className="text-sm text-muted-foreground mt-1">{t('taskDetails.canObserveEstimates')}</p>
-                            </div>
-                        </>
-                    )}
-                </>
-            )}
+                            </>
+                        )}
+                    </>
+                )}
 
-            <WarningModal
-                isOpen={showWarningModal}
-                onClose={() => setShowWarningModal(false)}
-                onConfirm={handleConfirmReveal}
-                title={t('voting.revealEstimates')}
-                message={t('voting.notAllVoted', { voted: votedParticipants, total: totalParticipants })}
-                confirmText={t('voting.revealAnyway')}
-                cancelText={t('common.cancel')}
-            />
+                <WarningModal
+                    isOpen={showWarningModal}
+                    onClose={() => setShowWarningModal(false)}
+                    onConfirm={handleConfirmReveal}
+                    title={t('voting.revealEstimates')}
+                    message={t('voting.notAllVoted', { voted: votedParticipants, total: totalParticipants })}
+                    confirmText={t('voting.revealAnyway')}
+                    cancelText={t('common.cancel')}
+                />
             </CardContent>
         </Card>
     );

@@ -15,7 +15,7 @@ export function ThemeToggle() {
 
   return (
     <Select value={theme} onValueChange={(value) => setTheme(value as 'light' | 'dark')}>
-      <SelectTrigger className="w-[120px] h-10">
+      <SelectTrigger className="w-[140px] h-10">
         <SelectValue>
           {theme === 'dark' ? (
             <span className="flex items-center gap-2">
